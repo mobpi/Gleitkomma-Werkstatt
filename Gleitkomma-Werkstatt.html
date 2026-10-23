@@ -1,0 +1,914 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Gleitkomma-Werkstatt</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* Layout: Kopfleiste mit Reitern, darunter ein kariertes Arbeitsblatt (wie Schulpapier) mit Schritt-Karten. Bitfarben V/E/M wie in der Präsentation. */
+:root{
+  --bg:#EDF0F5; --paper:#FBFCFD; --grid:rgba(58,117,176,.09); --ink:#14213D; --muted:#55627A; --line:#D3DAE5; --chip:#E3E8F0;
+  --v:#6A4DA6; --e:#D9822B; --m:#3A75B0; --on-v:#FBFCFD; --on-e:#14213D; --on-m:#FBFCFD;
+  --ok:#23704A; --ok-bg:#E2F1E7; --ok2:#7DBB95; --warn:#8F5200; --warn-bg:#FBEBD2; --warn-dot:#E0A030; --bad:#B3261E; --bad-bg:#FBE4E2;
+  --focus:#D9822B;
+  --font:'IBM Plex Sans','Segoe UI',Arial,sans-serif; --mono:'JetBrains Mono',Consolas,'Courier New',monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1524; --paper:#161F33; --grid:rgba(120,160,215,.08); --ink:#E6EBF3; --muted:#9BA9C0; --line:#2C3A56; --chip:#22304B;
+  --v:#A58BDD; --e:#EDA862; --m:#74A8DE; --on-v:#0E1524; --on-e:#0E1524; --on-m:#0E1524;
+  --ok:#74C996; --ok-bg:#16301F; --ok2:#3E8A5E; --warn:#F2B866; --warn-bg:#3A2A12; --warn-dot:#C98A2A; --bad:#F48A80; --bad-bg:#3B1C1C;
+  --focus:#EDA862; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1524; --paper:#161F33; --grid:rgba(120,160,215,.08); --ink:#E6EBF3; --muted:#9BA9C0; --line:#2C3A56; --chip:#22304B;
+  --v:#A58BDD; --e:#EDA862; --m:#74A8DE; --on-v:#0E1524; --on-e:#0E1524; --on-m:#0E1524;
+  --ok:#74C996; --ok-bg:#16301F; --ok2:#3E8A5E; --warn:#F2B866; --warn-bg:#3A2A12; --warn-dot:#C98A2A; --bad:#F48A80; --bad-bg:#3B1C1C;
+  --focus:#EDA862; color-scheme:dark}
+html{font-size:16px}
+html.beamer{font-size:21px}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:1rem;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.2}
+p{margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mono{font-family:var(--mono)}
+.small{font-size:.82rem;color:var(--muted)}
+.caps{text-transform:uppercase;letter-spacing:.09em;font-weight:600;font-size:.72rem}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+
+/* Kopf */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:1px solid var(--line)}
+.top-in{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;padding-block:10px}
+.brand{display:flex;gap:12px;align-items:center;margin-right:auto;min-width:0}
+.logo{display:flex;width:52px;height:26px;border-radius:4px;overflow:hidden;flex:none}
+.logo i{display:block}.logo i:nth-child(1){flex:2;background:var(--v)}.logo i:nth-child(2){flex:6;background:var(--e)}.logo i:nth-child(3){flex:13;background:var(--m)}
+.brand b{display:block;font-size:1.05rem}
+.brand small{display:block;color:var(--muted);font-size:.78rem}
+.tabs{display:flex;flex-wrap:wrap;gap:4px}
+.tab{border:0;background:transparent;color:var(--muted);font:600 .9rem var(--font);padding:7px 12px;border-radius:8px;cursor:pointer}
+.tab:hover{color:var(--ink);background:var(--chip)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+main{padding-block:22px 72px}
+
+/* Buttons & Eingaben */
+.btn{font:600 .9rem var(--font);border-radius:8px;padding:8px 14px;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer;line-height:1.2}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover:not(:disabled){border-color:var(--ink)}
+.btn.sm{padding:5px 10px;font-size:.8rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn[aria-pressed="true"]{background:var(--e);border-color:var(--e);color:var(--on-e)}
+:focus-visible{outline:2.5px solid var(--focus);outline-offset:2px}
+.in{font:500 1rem var(--mono);padding:6px 8px;border:1.5px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);width:calc(var(--w,6) * 1ch + 20px);max-width:100%;min-width:0}
+.in.text{font-family:var(--font)}
+.in.ok{border-color:var(--ok);background:var(--ok-bg)}
+.in.shown{border-color:var(--warn-dot);background:var(--warn-bg)}
+.in.bad{border-color:var(--bad);background:var(--bad-bg)}
+.in.given{background:var(--chip);border-style:dashed}
+.in[readonly]{cursor:default}
+textarea.in{font-family:var(--font);width:100%;min-height:4.5rem;resize:vertical}
+.opt{display:inline-flex;gap:8px;align-items:center;padding:6px 12px;border:1.5px solid var(--line);border-radius:8px;cursor:pointer;background:var(--paper)}
+.opt:has(input:checked){border-color:var(--ink);background:var(--chip)}
+.opt.block{display:flex;align-items:flex-start;width:100%}
+.opt.block input{margin-top:.3em}
+sub,.sub2{font-size:.75em}
+
+/* Blatt-Navigation */
+.sheetnav{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px}
+.chip{flex:none;display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);cursor:pointer;font:500 .9rem var(--font);text-align:left}
+.chip small{color:var(--muted);font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;font-weight:600}
+.chip .prog{font:500 .72rem var(--mono);color:var(--muted)}
+.chip .prog.full{color:var(--ok)}
+.chip[aria-current="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+
+/* Arbeitsblatt */
+.sheet{background-color:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px;border:1px solid var(--line);border-radius:14px;padding:clamp(14px,3vw,30px);display:flex;flex-direction:column;gap:18px}
+.ex-head{display:flex;flex-direction:column;gap:10px}
+.ex-head h2{font-size:1.6rem}
+.ex-head .row .btn{margin-left:auto}
+.lvl{font:700 .7rem var(--font);letter-spacing:.1em;padding:3px 8px;border-radius:4px;background:var(--chip);color:var(--ink)}
+.lvl-basis{background:var(--m);color:var(--on-m)}.lvl-standard{background:var(--e);color:var(--on-e)}.lvl-transfer,.lvl-knifflig{background:var(--v);color:var(--on-v)}.lvl-muster{background:var(--ink);color:var(--paper)}
+.situation{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--m);border-radius:8px;padding:10px 14px;max-width:70ch}
+.task{font-weight:600;max-width:70ch}
+.tip{background:var(--warn-bg);border-radius:8px;padding:8px 12px;max-width:70ch}
+.note{color:var(--muted);font-size:.9rem}
+.lernbild{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch}
+.lernbild div{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:8px 12px;display:flex;flex-direction:column;gap:2px}
+.lernbild b{font:600 .95rem var(--mono)}
+.lernbild .arr{align-self:center;color:var(--muted);border:0;background:none;padding:0}
+.steps{display:flex;flex-direction:column;gap:12px}
+.step{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.step.done{border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
+.step-head{display:flex;gap:12px;align-items:flex-start}
+.num{flex:none;width:2.1rem;height:2.1rem;border-radius:50%;background:var(--chip);display:grid;place-items:center;font:700 .95rem var(--mono)}
+.step.done .num{background:var(--ok-bg);color:var(--ok)}
+.tt{flex:1;min-width:0}
+.tt h3{font-size:1.02rem}
+.tt .sub{color:var(--muted);font-size:.88rem}
+.pill{flex:none;font-size:.74rem;font-weight:600;padding:3px 10px;border-radius:99px;background:var(--chip);color:var(--muted);white-space:nowrap}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}.pill.warn{background:var(--warn-bg);color:var(--warn)}.pill.bad{background:var(--bad-bg);color:var(--bad)}
+.step-body{display:flex;flex-direction:column;gap:10px;min-width:0}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.fb{font-size:.92rem;padding:8px 12px;border-radius:8px;max-width:75ch}
+.fb.ok{background:var(--ok-bg);color:var(--ok)}.fb.bad{background:var(--bad-bg);color:var(--bad)}.fb.info{background:var(--chip);color:var(--ink)}
+.hint{background:var(--warn-bg);border-radius:8px;padding:8px 12px;font-size:.92rem;max-width:75ch}
+.caption{font-size:.84rem;color:var(--muted)}
+.tbl-wrap{overflow-x:auto;max-width:100%}
+table.calc{border-collapse:collapse;font-family:var(--mono)}
+table.calc th{font:600 .74rem var(--font);color:var(--muted);text-align:left;padding:4px 10px;letter-spacing:.04em;text-transform:uppercase}
+table.calc td{padding:5px 10px;border-top:1px solid var(--line);white-space:nowrap}
+.gn{display:inline-block;min-width:3ch;font-weight:700}
+.sup{display:inline-flex;transform:translateY(-.55em)}
+.field-lbl{font:700 .8rem var(--mono);padding:2px 7px;border-radius:4px}
+.fv{background:var(--v);color:var(--on-v)}.fe{background:var(--e);color:var(--on-e)}.fm{background:var(--m);color:var(--on-m)}
+.counter{font:500 .78rem var(--mono);color:var(--muted)}
+.groups{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;max-width:680px}
+@media (max-width:560px){.groups{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.grp{display:flex;flex-direction:column;gap:4px;min-width:0}
+.cells{display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+.cells i{height:6px;border-radius:2px}
+.cv{background:var(--v)}.ce{background:var(--e)}.cm{background:var(--m)}
+.grp .in{width:100%;text-align:center;padding-inline:2px}
+.hexd{font:700 1.25rem var(--mono);text-align:center}
+.gtext{font:500 .9rem var(--mono);text-align:center;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.82rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+details.help{border:1px dashed var(--line);border-radius:8px;padding:6px 12px;background:var(--paper)}
+details.help summary{cursor:pointer;font-size:.88rem;font-weight:600}
+.hexgrid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;margin-top:8px}
+@media (max-width:560px){.hexgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.hexgrid div{display:flex;flex-direction:column;align-items:center;font:500 .8rem var(--mono);padding:4px;border-radius:6px;background:var(--chip)}
+.hexgrid b{font-size:1rem}
+.places{display:flex;flex-wrap:wrap;gap:4px;font:500 .82rem var(--mono)}
+.places span{padding:3px 7px;border-radius:5px;background:var(--chip)}
+.result{font:700 1.15rem var(--mono);padding:12px 16px;border-radius:10px;background:var(--ink);color:var(--paper)}
+.submit{border:2px dashed var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--paper)}
+.submit h3{font-size:1.05rem}
+.submit label{font-weight:600;font-size:.9rem}
+.in.code{width:min(100%,46ch);font-size:.9rem}
+html.beamer .student-only{display:none!important}
+.beamer-note{display:none}
+html.beamer .beamer-note{display:block}
+
+/* Freies Üben */
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end;margin-bottom:16px}
+fieldset{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+legend{font-weight:600;font-size:.82rem;color:var(--muted);padding:0;margin-bottom:4px}
+
+/* Explorer */
+.x-in{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+.x-in label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.85rem}
+.quick{display:flex;flex-wrap:wrap;gap:6px}
+.bitrow{display:flex;flex-wrap:wrap;gap:10px 12px}
+.nib{display:flex;flex-direction:column;gap:4px;align-items:center}
+.nib .bb{display:flex;gap:2px}
+.bit{width:1.75rem;height:2.15rem;border:0;border-radius:4px;font:700 1rem var(--mono);cursor:pointer;padding:0}
+.bit.v{background:var(--v);color:var(--on-v)}.bit.e{background:var(--e);color:var(--on-e)}.bit.m{background:var(--m);color:var(--on-m)}
+.bit.z{background:transparent;color:var(--ink)}
+.bit.v.z{box-shadow:inset 0 0 0 2px var(--v)}.bit.e.z{box-shadow:inset 0 0 0 2px var(--e)}.bit.m.z{box-shadow:inset 0 0 0 2px var(--m)}
+.xgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.xcard{background:var(--paper);border:1px solid var(--line);border-top:4px solid var(--ink);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0;overflow-wrap:anywhere}
+.xcard.v{border-top-color:var(--v)}.xcard.e{border-top-color:var(--e)}.xcard.m{border-top-color:var(--m)}
+.xcard .big{font:700 1.15rem var(--mono)}
+.xstack{display:flex;flex-direction:column;gap:16px}
+
+/* Lehrkraft */
+.t-grid{display:flex;flex-direction:column;gap:16px}
+.t-codes{font:500 .82rem var(--mono);width:100%;min-height:9rem}
+.kpis{display:flex;flex-wrap:wrap;gap:10px}
+.kpi{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:9rem}
+.kpi b{display:block;font:700 1.5rem var(--mono)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card h3{font-size:1.05rem}
+table.mx{border-collapse:collapse;font-size:.88rem;min-width:100%}
+table.mx th{font:600 .74rem var(--font);color:var(--muted);text-transform:uppercase;letter-spacing:.05em;text-align:left;padding:6px 10px;white-space:nowrap}
+table.mx td{border-top:1px solid var(--line);padding:7px 10px;white-space:nowrap;vertical-align:middle}
+.sqs{display:inline-flex;gap:2px;margin-right:6px;vertical-align:middle}
+.sq{width:10px;height:14px;border-radius:2px;display:inline-block;background:var(--chip)}
+.s1{background:var(--ok)}.s2{background:var(--ok2)}.s3{background:var(--warn-dot)}.s0{background:var(--chip);box-shadow:inset 0 0 0 1px var(--line)}
+.tnum{font:500 .8rem var(--mono);color:var(--muted)}
+.bars{display:flex;flex-direction:column;gap:8px}
+.barrow{display:grid;grid-template-columns:minmax(0,15rem) minmax(0,1fr) auto;gap:10px;align-items:center}
+@media (max-width:620px){.barrow{grid-template-columns:1fr auto}.barrow .bar{grid-column:1 / -1;grid-row:2}}
+.bar{display:flex;height:16px;border-radius:4px;overflow:hidden;background:var(--chip)}
+.bar span{display:block;height:100%}
+.flag{font:700 .68rem var(--font);text-transform:uppercase;letter-spacing:.06em;color:var(--bad);margin-left:6px}
+.tags{display:flex;flex-direction:column;gap:6px}
+.tagrow{display:grid;grid-template-columns:3rem minmax(0,1fr);gap:10px;align-items:baseline}
+.tagrow b{font:700 1.1rem var(--mono);text-align:right}
+.empty{border:2px dashed var(--line);border-radius:12px;padding:20px;color:var(--muted);background:var(--paper)}
+.sol-tbl td,.sol-tbl th{padding:5px 10px;border-top:1px solid var(--line);text-align:left}
+.sol-tbl{border-collapse:collapse;font-size:.9rem;margin-top:8px}
+@media (prefers-reduced-motion:no-preference){.step,.chip,.btn,.bit{transition:background-color .15s,border-color .15s,box-shadow .15s}}
+</style>
+
+<header class="top">
+  <div class="wrap top-in">
+    <div class="brand"><span class="logo" aria-hidden="true"><i></i><i></i><i></i></span><div><b>Gleitkomma-Werkstatt</b><small>Dezimal → Festkomma → IEEE 754 → Hex</small></div></div>
+    <nav class="tabs" role="tablist" aria-label="Bereiche">
+      <button class="tab" role="tab" data-tab="sheets" aria-selected="true">Übungsblätter</button>
+      <button class="tab" role="tab" data-tab="free" aria-selected="false">Freies Üben</button>
+      <button class="tab" role="tab" data-tab="explorer" aria-selected="false">Explorer</button>
+      <button class="tab" role="tab" data-tab="teacher" aria-selected="false">Lehrkraft</button>
+    </nav>
+    <button class="btn ghost" id="beamerBtn" aria-pressed="false" title="Große Schrift, Lösungen sofort aufdeckbar, nichts wird gespeichert">Beamer</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="tab-sheets">
+    <p class="fb info beamer-note" style="margin-bottom:12px">Beamer-Modus: Lösungen lassen sich sofort aufdecken. Eingaben werden nicht gespeichert und zählen nicht für Abgabe-Codes.</p>
+    <div class="sheetnav" id="sheetNav"></div>
+    <div id="sheetView"></div>
+  </section>
+
+  <section id="tab-free" hidden>
+    <div class="panel">
+      <fieldset><legend>Richtung</legend><div class="row">
+        <label class="opt"><input type="radio" name="fdir" id="fdir-fwd" value="fwd" checked><span>Dezimal → Hex</span></label>
+        <label class="opt"><input type="radio" name="fdir" id="fdir-rev" value="rev"><span>Hex → Dezimal</span></label></div></fieldset>
+      <fieldset><legend>Niveau</legend><div class="row">
+        <label class="opt"><input type="radio" name="flvl" id="flvl-b" value="basis" checked><span>Basis</span></label>
+        <label class="opt"><input type="radio" name="flvl" id="flvl-s" value="standard"><span>Standard</span></label>
+        <label class="opt"><input type="radio" name="flvl" id="flvl-k" value="knifflig"><span>Knifflig</span></label></div></fieldset>
+      <button class="btn" id="freeNew">Neue Aufgabe</button>
+    </div>
+    <div id="freeView"></div>
+  </section>
+
+  <section id="tab-explorer" hidden>
+    <div class="sheet">
+      <div class="ex-head"><span class="small caps">Explorer</span><h2>Eine Zahl, vier Schreibweisen</h2>
+        <p class="note">Geben Sie eine Dezimalzahl oder ein Hex-Muster ein. Jedes Bit lässt sich anklicken und umschalten.</p></div>
+      <div class="x-in">
+        <label for="xDec">Dezimalzahl<input class="in" id="xDec" style="--w:16" value="-6,75" autocomplete="off" spellcheck="false"></label>
+        <label for="xHex">Hex (32 Bit)<input class="in" id="xHex" style="--w:10" maxlength="8" value="C0D80000" autocomplete="off" spellcheck="false"></label>
+        <div class="quick" id="xQuick"></div>
+      </div>
+      <p class="fb bad" id="xErr" hidden></p>
+      <div class="xstack">
+        <div class="legend"><span><i class="cv"></i>V Vorzeichen (1 Bit)</span><span><i class="ce"></i>E Exponent (8 Bit)</span><span><i class="cm"></i>M Mantisse (23 Bit)</span><span>Gefüllt = 1, umrandet = 0</span></div>
+        <div class="bitrow" id="xBits"></div>
+        <div class="xgrid" id="xInfo"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-teacher" hidden>
+    <div class="t-grid">
+      <div class="ex-head"><span class="small caps">Lehrkraft</span><h2>Klassenübersicht</h2>
+        <p class="note" style="max-width:75ch">Fügen Sie die Abgabe-Codes Ihrer Klasse ein. Das darf beliebiger Text sein, etwa eine kopierte Spalte aus Teams, Forms oder Excel: Die App sucht die Codes selbst heraus. Die Auswertung läuft nur in Ihrem Browser, es wird nichts hochgeladen.</p></div>
+      <label for="tCodes" class="small caps">Abgabe-Codes</label>
+      <textarea id="tCodes" class="in t-codes" spellcheck="false" placeholder="GK|1|Vorname Nachname|111211111||7Q"></textarea>
+      <div class="row"><button class="btn ghost" id="tDemo">Beispieldaten laden</button><button class="btn ghost" id="tClear">Leeren</button><span class="small" id="tStat"></span></div>
+      <div id="tOut" class="t-grid"></div>
+      <details class="help"><summary>Lösungen auf einen Blick</summary><div class="tbl-wrap" id="tSol"></div></details>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const LS={get(k,d){try{const v=localStorage.getItem('gkw:'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+          set(k,v){try{localStorage.setItem('gkw:'+k,JSON.stringify(v))}catch(e){}}};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=x=>{ if(!isFinite(x)) return String(x); let s=String(+x.toFixed(12)); if(/e/.test(s)) s=String(x); return s.replace('.',',').replace('-','−'); };
+const num=s=>{ s=String(s??'').trim().replace(/\s/g,'').replace(/[−–]/g,'-').replace(/°C|€|kg|%/g,'').replace(',','.'); return /^[-+]?(\d+\.?\d*|\.\d+)$/.test(s)?parseFloat(s):NaN; };
+const int=s=>{ s=String(s??'').trim().replace(/[−–]/g,'-').replace(/\s/g,''); return /^[-+]?\d+$/.test(s)?parseInt(s,10):NaN; };
+const bits=s=>String(s??'').replace(/[\s_₂]/g,'');
+const isB=s=>/^[01]+$/.test(s);
+const rev=s=>s.split('').reverse().join('');
+const near=(a,b,t=1e-9)=>Math.abs(a-b)<=t;
+const uniq=s=>[...new Set(String(s||''))].sort().join('');
+const minusStr=n=>String(n).replace('-','−');
+
+/* ---------- Rechenkern ---------- */
+function forward(x){
+  const sign=x<0?1:0, a=Math.abs(x), ip=Math.floor(a), fp=a-ip;
+  const div=[]; let n=ip; while(n>0){ div.push({n,q:Math.floor(n/2),r:n%2}); n=Math.floor(n/2); }
+  const mul=[]; let f=fp, g=0; while(f>0&&g<16){ const y=f*2, b=Math.floor(y); mul.push({x:f,y,b}); f=y-b; g++; }
+  const intBin=ip.toString(2), fracBin=mul.map(r=>r.b).join('');
+  let k,mant;
+  if(ip>0){ k=intBin.length-1; mant=intBin.slice(1)+fracBin; } else { const i=fracBin.indexOf('1'); k=-(i+1); mant=fracBin.slice(i+1); }
+  mant=mant.replace(/0+$/,'');
+  const e=k+127, eBin=e.toString(2).padStart(8,'0'), m23=mant.padEnd(23,'0');
+  const b32=String(sign)+eBin+m23, groups=b32.match(/.{4}/g), hex=groups.map(q=>parseInt(q,2).toString(16).toUpperCase()).join('');
+  return {x,sign,a,ip,fp,div,mul,intBin,fracBin,fix8i:intBin.padStart(8,'0'),fix8f:fracBin.padEnd(8,'0'),k,mant,e,eBin,m23,bits:b32,groups,hex};
+}
+const dv=new DataView(new ArrayBuffer(4));
+function reverse(hex){
+  const b=hex.split('').map(h=>parseInt(h,16).toString(2).padStart(4,'0')).join('');
+  const V=b[0], E=b.slice(1,9), M=b.slice(9), e=parseInt(E,2), k=e-127, mant=M.replace(/0+$/,'');
+  const digits='1'+mant; let fixed;
+  if(k>=0){ const ints=digits.slice(0,k+1).padEnd(k+1,'0'), fr=digits.slice(k+1); fixed=fr?ints+','+fr:ints; }
+  else fixed='0,'+'0'.repeat(-k-1)+digits;
+  dv.setUint32(0,parseInt(hex,16)>>>0);
+  return {hex,bits:b,groups:b.match(/.{4}/g),V,E,M,e,k,mant,fixed,value:dv.getFloat32(0)};
+}
+function binFixed(s){
+  s=String(s??'').replace(/[\s₂]/g,'').replace('.',',');
+  const neg=/^[-−]/.test(s); s=s.replace(/^[-−+]/,'');
+  if(!/^[01]*(,[01]*)?$/.test(s)||s===''||s===',') return NaN;
+  const [a,b='']=s.split(','); let v=a?parseInt(a,2):0;
+  for(let i=0;i<b.length;i++) if(b[i]==='1') v+=Math.pow(2,-(i+1));
+  return neg?-v:v;
+}
+
+/* ---------- Feld-Bausteine ---------- */
+function F(ctx,sid,S){
+  const g=ctx.given[sid]||{}, v=ctx.vals[sid]||{}, lock=ctx.muster||S.ok||S.shown;
+  const cls=f=> g[f]!=null?' given' : S.shown?' shown' : S.ok?' ok' : (S.bad||[]).includes(f)?' bad':'';
+  return {
+    inp(f,o={}){ const val=g[f]!=null?g[f]:(v[f]??''); const ro=g[f]!=null||lock;
+      return `<input class="in${o.cls?' '+o.cls:''}${cls(f)}" data-f="${f}" id="${ctx.key}-${sid}-${f}" value="${esc(val)}"${ro?' readonly':''} inputmode="${o.mode||'text'}" autocomplete="off" autocapitalize="off" spellcheck="false"${o.max?` maxlength="${o.max}"`:''}${o.adv?' data-adv="1"':''}${o.upper?' data-upper="1"':''} placeholder="${esc(o.ph||'')}" aria-label="${esc(o.label||f)}" style="--w:${o.w||6}">`; },
+    radio(f,val,label,block){ const cur=g[f]!=null?g[f]:v[f];
+      return `<label class="opt${block?' block':''}"><input type="radio" name="${ctx.key}-${sid}-${f}" id="${ctx.key}-${sid}-${f}-${val}" data-f="${f}" value="${esc(val)}"${String(cur)===String(val)?' checked':''}${lock?' disabled':''}><span>${label}</span></label>`; },
+    area(f,o={}){ const val=g[f]!=null?g[f]:(v[f]??'');
+      return `<textarea class="in${cls(f)}" data-f="${f}" id="${ctx.key}-${sid}-${f}"${lock?' readonly':''} aria-label="${esc(o.label||f)}" placeholder="${esc(o.ph||'')}">${esc(val)}</textarea>`; },
+    val:f=> g[f]!=null?g[f]:(v[f]??'')
+  };
+}
+const hexHelp=()=>`<details class="help"><summary>Hilfe: Vierergruppe → Hex-Ziffer</summary><div class="hexgrid">${[...Array(16)].map((_,i)=>`<div><span>${i.toString(2).padStart(4,'0')}</span><b>${i.toString(16).toUpperCase()}</b></div>`).join('')}</div></details>`;
+const cellsFor=gi=>[0,1,2,3].map(j=>{const p=gi*4+j;return `<i class="${p===0?'cv':p<9?'ce':'cm'}"></i>`}).join('');
+const legend=()=>`<div class="legend"><span><i class="cv"></i>V (1 Bit)</span><span><i class="ce"></i>E (8 Bit)</span><span><i class="cm"></i>M (23 Bit)</span></div>`;
+
+function divTable(fh,S){
+  if(S.ip===0) return `<p class="note">Der Ganzzahlteil ist 0. Hier ist keine Division nötig.</p>`;
+  const rows=S.div.map((r,j)=>`<tr><td>${j===0?`<span class="gn">${r.n}</span>`:fh.inp('n'+j,{w:3,mode:'numeric',label:`Zeile ${j+1}: Zahl`})} : 2</td><td>= ${fh.inp('q'+j,{w:3,mode:'numeric',label:`Zeile ${j+1}: Ergebnis`})}</td><td>${fh.inp('r'+j,{w:1,max:1,mode:'numeric',label:`Zeile ${j+1}: Rest`})}</td></tr>`).join('');
+  return `<div class="tbl-wrap"><table class="calc"><thead><tr><th>Ganzzahlteil : 2</th><th>Ergebnis</th><th>Rest</th></tr></thead><tbody>${rows}</tbody></table></div><p class="caption">Reste von unten nach oben lesen ↑</p>`;
+}
+function checkDiv(v,S){
+  for(let j=0;j<S.div.length;j++){ const r=S.div[j];
+    const n=j===0?r.n:int(v['n'+j]), q=int(v['q'+j]), re=int(v['r'+j]);
+    if((j>0&&isNaN(n))||isNaN(q)||isNaN(re)) return {empty:1,msg:'Füllen Sie zuerst alle Felder der Tabelle aus.'};
+    if(n!==r.n) return {msg:`Zeile ${j+1}: Teilen Sie das Ergebnis der Zeile darüber weiter durch 2.`,tag:'t',bad:['n'+j]};
+    if(q!==r.q||re!==r.r) return {msg:`Zeile ${j+1}: ${r.n} : 2 ergibt nicht ${q} Rest ${re}.`,tag:'t',bad:['q'+j,'r'+j]};
+  }
+  return null;
+}
+function mulTable(fh,rows,stop=true){
+  const tr=rows.map((r,j)=>`<tr><td>${j===0?`<span class="gn">${fmt(r.x)}</span>`:fh.inp('x'+j,{w:6,mode:'decimal',label:`Zeile ${j+1}: Nachkommateil`})} × 2</td><td>= ${fh.inp('y'+j,{w:6,mode:'decimal',label:`Zeile ${j+1}: Ergebnis`})}</td><td>${fh.inp('b'+j,{w:1,max:1,mode:'numeric',label:`Zeile ${j+1}: Bit vor dem Komma`})}</td></tr>`).join('');
+  return `<div class="tbl-wrap"><table class="calc"><thead><tr><th>Nachkommateil × 2</th><th>Ergebnis</th><th>Bit vor dem Komma</th></tr></thead><tbody>${tr}</tbody></table></div><p class="caption">Bits von oben nach unten lesen ↓${stop?' · Stopp, wenn hinter dem Komma 0 steht.':''}</p>`;
+}
+function checkMul(v,rows){
+  for(let j=0;j<rows.length;j++){ const r=rows[j];
+    const x=j===0?r.x:num(v['x'+j]), y=num(v['y'+j]), b=int(v['b'+j]);
+    if(isNaN(x)||isNaN(y)||isNaN(b)) return {empty:1,msg:'Füllen Sie zuerst alle Felder der Tabelle aus.'};
+    if(!near(x,r.x)) return {msg:`Zeile ${j+1}: Rechnen Sie nur mit dem Teil hinter dem Komma weiter.`,tag:'t',bad:['x'+j]};
+    if(!near(y,r.y)) return {msg:`Zeile ${j+1}: ${fmt(r.x)} × 2 ist nicht ${fmt(y)}.`,tag:'t',bad:['y'+j]};
+    if(b!==r.b) return {msg:`Zeile ${j+1}: Das Bit ist die Ziffer vor dem Komma des Ergebnisses.`,tag:'t',bad:['b'+j]};
+  }
+  return null;
+}
+const mulSol=(rows,o={})=>{ rows.forEach((r,j)=>{ if(j) o['x'+j]=fmt(r.x); o['y'+j]=fmt(r.y); o['b'+j]=String(r.b); }); return o; };
+function groupInputs(fh,top){
+  return `<div class="groups">${[0,1,2,3,4,5,6,7].map(i=>`<div class="grp">${top?top(i):''}<div class="cells" aria-hidden="true">${cellsFor(i)}</div>${fh.inp('g'+i,{w:4,max:4,adv:1,mode:'numeric',label:`Vierergruppe ${i+1}`})}</div>`).join('')}</div>`;
+}
+function readGroups(v){ const gs=[0,1,2,3,4,5,6,7].map(i=>bits(v['g'+i])); return gs; }
+
+/* ---------- Schritte: Dezimal → Hex ---------- */
+function fwdSteps(S){
+  return [
+  {id:'v',title:'Vorzeichen',short:'Vorzeichen',sub:'Plus → 0, Minus → 1',
+   body:fh=>`<div class="row">${fh.radio('v','0','0 · Plus')}${fh.radio('v','1','1 · Minus')}</div>`,
+   check:v=>v.v==null||v.v===''?{empty:1,msg:'Wählen Sie 0 oder 1.'}:+v.v===S.sign?{ok:1}:{msg:S.sign?'Die Zahl hat ein Minus. Minus → 1.':'Die Zahl ist positiv. Plus → 0.',tag:'v'},
+   sol:()=>({v:String(S.sign)}),
+   hint:`Schauen Sie nur auf das Vorzeichen von ${fmt(S.x)}. Danach rechnen Sie mit dem Betrag ${fmt(S.a)} weiter.`},
+  {id:'i',title:'Ganzzahlteil binär',short:'Ganzzahlteil binär',sub:'Immer durch 2 teilen. Die Reste von unten nach oben lesen.',
+   body:fh=>divTable(fh,S)+`<div class="row"><span class="mono">${S.ip} =</span>${fh.inp('ib',{w:8,max:12,mode:'numeric',label:'Ganzzahlteil binär'})}<span class="mono">₂</span></div>`,
+   check:v=>{ const t=checkDiv(v,S); if(t) return t; const a=bits(v.ib);
+     if(!a) return {empty:1,msg:'Tragen Sie den Ganzzahlteil binär ein.'};
+     if(!isB(a)) return {msg:'Verwenden Sie nur 0 und 1.',bad:['ib']};
+     if(parseInt(a,2)===S.ip) return {ok:1};
+     if(S.intBin!==rev(S.intBin)&&rev(a).replace(/^0+/,'')===S.intBin) return {msg:'Die Reste stimmen, aber die Reihenfolge nicht. Lesen Sie die Reste von unten nach oben.',tag:'r',bad:['ib']};
+     return {msg:`${a}₂ ist nicht ${S.ip}. Übernehmen Sie die Reste aus der Tabelle.`,bad:['ib']}; },
+   sol:()=>{ const o={ib:S.intBin}; S.div.forEach((r,j)=>{ if(j) o['n'+j]=String(r.n); o['q'+j]=String(r.q); o['r'+j]=String(r.r); }); return o; },
+   hint:'Teilen Sie immer wieder durch 2, bis als Ergebnis 0 herauskommt. Der Rest ist jeweils 0 oder 1. Der Rest der untersten Zeile ist das erste Bit.'},
+  {id:'f',title:'Nachkommateil binär',short:'Nachkommateil binär',sub:'Immer mal 2 nehmen. Die Ziffer vor dem Komma ist das Bit.',
+   body:fh=>mulTable(fh,S.mul)+`<div class="row"><span class="mono">${fmt(S.fp)} = 0,</span>${fh.inp('fb',{w:8,max:12,mode:'numeric',label:'Nachkommateil binär'})}<span class="mono">₂</span></div>`,
+   check:v=>{ const t=checkMul(v,S.mul); if(t) return t; const a=bits(v.fb).replace(/^0?,/,'');
+     if(!a) return {empty:1,msg:'Tragen Sie die Nachkommabits ein.'};
+     if(!isB(a)) return {msg:'Verwenden Sie nur 0 und 1.',bad:['fb']};
+     if(a.replace(/0+$/,'')===S.fracBin) return {ok:1};
+     if(S.fracBin!==rev(S.fracBin)&&rev(a).replace(/0+$/,'')===S.fracBin) return {msg:'Die Bits stimmen, aber die Reihenfolge nicht. Lesen Sie von oben nach unten.',tag:'n',bad:['fb']};
+     return {msg:'Übernehmen Sie die Bits aus der rechten Spalte, von oben nach unten.',bad:['fb']}; },
+   sol:()=>mulSol(S.mul,{fb:S.fracBin}),
+   hint:'Verdoppeln Sie den Nachkommateil. Steht vor dem Komma eine 1, notieren Sie 1 und rechnen nur mit dem Rest hinter dem Komma weiter.'},
+  {id:'x',title:'Festkommazahl (Format 8.8)',short:'Festkomma 8.8',sub:'8 Bit vor dem Komma, 8 Bit nach dem Komma (Betrag)',
+   body:fh=>`<div class="row"><span class="mono">${fmt(S.a)} =</span>${fh.inp('fi',{w:8,max:8,mode:'numeric',label:'8 Bit vor dem Komma'})}<span class="mono">,</span>${fh.inp('ff',{w:8,max:8,mode:'numeric',label:'8 Bit nach dem Komma'})}<span class="mono">₂</span></div>`,
+   check:v=>{ const fi=bits(v.fi), ff=bits(v.ff);
+     if(!fi||!ff) return {empty:1,msg:'Füllen Sie beide Teile aus.'};
+     if(!isB(fi+ff)) return {msg:'Verwenden Sie nur 0 und 1.'};
+     if(fi.length!==8||ff.length!==8) return {msg:`Jeder Teil hat genau 8 Bit (Sie haben ${fi.length} und ${ff.length}).`,tag:'l',bad:[fi.length!==8?'fi':'',ff.length!==8?'ff':'']};
+     if(fi===S.fix8i&&ff===S.fix8f) return {ok:1};
+     const side=(fi!==S.fix8i&&fi===S.intBin.padEnd(8,'0'))||(ff!==S.fix8f&&ff===S.fracBin.padStart(8,'0'));
+     return {msg:side?'Auf der richtigen Seite auffüllen: Ganzzahlteil links mit Nullen, Nachkommateil rechts.':'Übernehmen Sie die Bits aus Schritt 2 und 3 und füllen Sie auf 8 Bit auf.',tag:side?'f':'',bad:[fi!==S.fix8i?'fi':'',ff!==S.fix8f?'ff':'']}; },
+   sol:()=>({fi:S.fix8i,ff:S.fix8f}),
+   hint:'Nullen vor dem Ganzzahlteil und Nullen am Ende des Nachkommateils ändern den Wert nicht.'},
+  {id:'n',title:'Normalisieren',short:'Normalisieren',sub:'Komma verschieben, bis genau eine 1 davor steht: 1,… × 2^k',
+   body:fh=>`<div class="row"><span class="mono">1,</span>${fh.inp('nm',{w:12,max:24,mode:'numeric',ph:'Ziffern',label:'Ziffern nach dem Komma'})}<span class="mono">× 2</span><span class="sup">${fh.inp('k',{w:3,max:4,ph:'k',label:'Exponent k'})}</span></div><p class="caption">Komma nach links → k positiv, nach rechts → k negativ.</p>`,
+   check:v=>{ const k=int(v.k), nm=bits(v.nm).replace(/^1?,/,'');
+     if(isNaN(k)||(nm===''&&S.mant!=='')) return {empty:1,msg:'Füllen Sie die Ziffern und k aus.'};
+     if(nm&&!isB(nm)) return {msg:'Nach dem Komma stehen nur 0 und 1.',bad:['nm']};
+     const mOK=nm.replace(/0+$/,'')===S.mant, kOK=k===S.k;
+     if(mOK&&kOK) return {ok:1};
+     if(mOK&&k===-S.k) return {msg:'Die Ziffern stimmen, k hat aber das falsche Vorzeichen. Komma nach links → k positiv, nach rechts → k negativ.',tag:'k',bad:['k']};
+     if(mOK) return {msg:'Die Ziffern stimmen. Zählen Sie nach, um wie viele Stellen das Komma wandert.',bad:['k']};
+     if(kOK) return {msg:'k stimmt. Nach dem Komma stehen alle Ziffern, die nach der ersten 1 kommen.',bad:['nm']};
+     return {msg:'Verschieben Sie das Komma, bis genau eine 1 davor steht.',bad:['nm','k']}; },
+   sol:()=>({nm:S.mant||'0',k:String(S.k)}),
+   hint:S.ip>0?'Das Komma wandert nach links, bis nur noch die erste 1 davor steht. Die Anzahl der Stellen ist k (positiv).':'Die Zahl ist kleiner als 1. Das Komma wandert nach rechts, bis es hinter der ersten 1 steht. Dann ist k negativ.'},
+  {id:'e',title:'Exponent e = k + 127',short:'Exponent mit Bias',sub:'Dezimal und als 8-Bit-Binärzahl',
+   body:fh=>`<div class="row"><span class="mono">e =</span>${fh.inp('ed',{w:4,max:4,mode:'numeric',label:'e dezimal'})}<span class="mono">=</span>${fh.inp('eb',{w:8,max:8,mode:'numeric',label:'e als 8 Bit'})}<span class="mono">₂</span></div>`,
+   check:v=>{ const ed=int(v.ed), eb=bits(v.eb);
+     if(isNaN(ed)||!eb) return {empty:1,msg:'Füllen Sie e dezimal und binär aus.'};
+     if(ed!==S.e){ if(ed===S.k) return {msg:'Sie haben die 127 noch nicht dazugezählt.',tag:'b',bad:['ed']};
+       if(ed===127-S.k) return {msg:'Achten Sie auf das Vorzeichen von k: e = k + 127.',tag:'b',bad:['ed']};
+       return {msg:'Rechnen Sie e = k + 127 noch einmal nach.',bad:['ed']}; }
+     if(!isB(eb)) return {msg:'Verwenden Sie nur 0 und 1.',bad:['eb']};
+     if(eb===S.eBin) return {ok:1};
+     if(parseInt(eb,2)===S.e) return {msg:'Der Wert stimmt, aber e braucht genau 8 Bit. Füllen Sie links mit Nullen auf.',tag:'x',bad:['eb']};
+     return {msg:`${eb}₂ ist nicht ${S.e}. Rechnen Sie die Binärzahl nach.`,bad:['eb']}; },
+   sol:()=>({ed:String(S.e),eb:S.eBin}),
+   hint:`Rechnen Sie zuerst k + 127. Dann schreiben Sie das Ergebnis mit den Stellenwerten 128 64 32 16 8 4 2 1 als 8 Bit.`},
+  {id:'m',title:'Mantisse (23 Bit)',short:'Mantisse 23 Bit',sub:'Ziffern nach dem Komma, rechts mit Nullen auffüllen. Die 1 vor dem Komma wird nicht gespeichert.',
+   body:fh=>`<div class="row">${fh.inp('m',{w:27,max:32,mode:'numeric',label:'Mantisse 23 Bit'})}<span class="counter" data-count="m" data-n="23">${bits(fh.val('m')).length}/23 Bit</span></div>`,
+   check:v=>{ const a=bits(v.m);
+     if(!a) return {empty:1,msg:'Tragen Sie die 23 Mantissenbits ein.'};
+     if(!isB(a)) return {msg:'Verwenden Sie nur 0 und 1.',bad:['m']};
+     if(a===S.m23) return {ok:1};
+     if(a===('1'+S.mant).padEnd(23,'0')||a==='1'+S.m23) return {msg:'Die führende 1 (Hidden Bit) wird nicht gespeichert. Beginnen Sie mit den Ziffern nach dem Komma.',tag:'h',bad:['m']};
+     if(a.length!==23) return {msg:`Die Mantisse hat genau 23 Bit. Sie haben ${a.length}.`,tag:'l',bad:['m']};
+     if(a===S.mant.padStart(23,'0')) return {msg:'Füllen Sie rechts mit Nullen auf, nicht links.',tag:'m',bad:['m']};
+     return {msg:'Übernehmen Sie die Ziffern nach dem Komma aus Schritt 5.',bad:['m']}; },
+   sol:()=>({m:S.m23}),
+   hint:`Schreiben Sie die Ziffern hinter „1,“ aus Schritt 5 ab und hängen Sie Nullen an, bis es 23 Bit sind.`},
+  {id:'b',title:'32-Bit-Muster',short:'32-Bit-Muster',sub:'Vorzeichen (1 Bit) | Exponent (8 Bit) | Mantisse (23 Bit), in Vierergruppen',
+   body:fh=>legend()+groupInputs(fh),
+   check:v=>{ const gs=readGroups(v);
+     if(gs.some(x=>!x)) return {empty:1,msg:'Füllen Sie alle acht Vierergruppen aus.'};
+     if(!isB(gs.join(''))||gs.some(x=>x.length!==4)) return {msg:'Jede Gruppe hat genau 4 Bit aus 0 und 1.',bad:gs.map((x,i)=>x.length!==4||!isB(x)?'g'+i:'')};
+     const a=gs.join(''); if(a===S.bits) return {ok:1};
+     const parts=[]; let tag=''; if(a[0]!==S.bits[0]){parts.push('das Vorzeichenbit');tag='v';}
+     if(a.slice(1,9)!==S.bits.slice(1,9)) parts.push('der Exponent (Bit 2 bis 9)');
+     if(a.slice(9)!==S.bits.slice(9)) parts.push('die Mantisse (Bit 10 bis 32)');
+     return {msg:`Noch nicht richtig: ${parts.join(', ')}. Die Farben über den Feldern zeigen, wo welcher Teil steht.`,tag,bad:gs.map((x,i)=>x!==S.groups[i]?'g'+i:'')}; },
+   sol:()=>Object.fromEntries(S.groups.map((g,i)=>['g'+i,g])),
+   hint:'Schreiben Sie V, dann die 8 Bit von e, dann die 23 Bit der Mantisse hintereinander. Danach in Vierergruppen teilen.'},
+  {id:'h',title:'Hexadezimal',short:'Hexadezimal',sub:'Jede Vierergruppe wird zu einer Hex-Ziffer.',
+   body:(fh,ctx)=>{ const gv=ctx.vals.b||{}, gg=ctx.given.b||{};
+     return `<div class="groups">${[0,1,2,3,4,5,6,7].map(i=>`<div class="grp"><div class="gtext">${esc(gg['g'+i]||gv['g'+i]||'····')}</div>${fh.inp('h'+i,{w:1,max:1,adv:1,upper:1,label:`Hex-Ziffer ${i+1}`})}</div>`).join('')}</div><p class="caption">Oben stehen Ihre Vierergruppen aus Schritt 8.</p>${hexHelp()}`; },
+   check:v=>{ const h=[0,1,2,3,4,5,6,7].map(i=>String(v['h'+i]||'').trim().toUpperCase());
+     if(h.some(x=>!x)) return {empty:1,msg:'Füllen Sie alle acht Hex-Ziffern aus.'};
+     const wrong=h.map((x,i)=>x!==S.hex[i]?i:-1).filter(i=>i>=0);
+     if(!wrong.length) return {ok:1,note:`Richtig. Ergebnis: ${fmt(S.x)} = ${S.hex}₁₆`};
+     return {msg:`Ziffer ${wrong.map(i=>i+1).join(', ')} passt noch nicht zur Vierergruppe darüber.`,tag:'g',bad:wrong.map(i=>'h'+i)}; },
+   sol:()=>Object.fromEntries(S.hex.split('').map((c,i)=>['h'+i,c])),
+   hint:'Werte der Stellen in einer Vierergruppe: 8 4 2 1. Ab 10 schreibt man Buchstaben: 10 = A, 11 = B, 12 = C, 13 = D, 14 = E, 15 = F.'}
+  ];
+}
+
+/* ---------- Schritte: Hex → Dezimal ---------- */
+function revSteps(R,o={}){
+  const unit=o.unit?' '+o.unit:'';
+  return [
+  {id:'g',title:'Hex → 32 Bit',short:'Hex → 32 Bit',sub:'Schreiben Sie jede Hex-Ziffer als 4 Bit.',
+   body:fh=>groupInputs(fh,i=>`<div class="hexd">${R.hex[i]}</div>`)+hexHelp(),
+   check:v=>{ const gs=readGroups(v);
+     if(gs.some(x=>!x)) return {empty:1,msg:'Füllen Sie alle acht Vierergruppen aus.'};
+     const wrong=gs.map((x,i)=>x!==R.groups[i]?i:-1).filter(i=>i>=0);
+     if(!wrong.length) return {ok:1};
+     return {msg:`Gruppe ${wrong.map(i=>i+1).join(', ')}: Prüfen Sie die Umwandlung von ${wrong.map(i=>R.hex[i]).join(', ')}.`,tag:'g',bad:wrong.map(i=>'g'+i)}; },
+   sol:()=>Object.fromEntries(R.groups.map((g,i)=>['g'+i,g])),
+   hint:'Jede Hex-Ziffer hat einen Wert von 0 bis 15. Schreiben Sie ihn mit den Stellenwerten 8 4 2 1 als 4 Bit.'},
+  {id:'a',title:'Aufteilen in V | E | M',short:'Aufteilen V | E | M',sub:'1 Bit | 8 Bit | 23 Bit',
+   body:fh=>`<div class="row"><span class="field-lbl fv">V</span>${fh.inp('V',{w:1,max:1,mode:'numeric',label:'Vorzeichenbit'})}<span class="field-lbl fe">E</span>${fh.inp('E',{w:8,max:8,mode:'numeric',label:'Exponentenfeld'})}</div><div class="row"><span class="field-lbl fm">M</span>${fh.inp('M',{w:27,max:32,mode:'numeric',label:'Mantissenfeld'})}<span class="counter" data-count="M" data-n="23">${bits(fh.val('M')).length}/23 Bit</span></div>`,
+   check:v=>{ const V=bits(v.V), E=bits(v.E), M=bits(v.M);
+     if(!V||!E||!M) return {empty:1,msg:'Füllen Sie V, E und M aus.'};
+     if(V.length!==1||E.length!==8||M.length!==23) return {msg:`Die Felder haben 1, 8 und 23 Bit (Sie haben ${V.length}, ${E.length}, ${M.length}).`,tag:'l',bad:[V.length!==1?'V':'',E.length!==8?'E':'',M.length!==23?'M':'']};
+     const bad=[V!==R.V?'V':'',E!==R.E?'E':'',M!==R.M?'M':''].filter(Boolean);
+     return bad.length?{msg:'Zählen Sie ab: das 1. Bit ist V, die nächsten 8 Bit sind E, der Rest ist M.',bad}:{ok:1}; },
+   sol:()=>({V:R.V,E:R.E,M:R.M}),
+   hint:'Nehmen Sie die 32 Bit aus Schritt 1 und trennen Sie nach dem 1. und nach dem 9. Bit.'},
+  {id:'v',title:'Vorzeichen',short:'Vorzeichen',sub:'0 → Plus, 1 → Minus',
+   body:fh=>`<div class="row">${fh.radio('s','0','Plus')}${fh.radio('s','1','Minus')}</div>`,
+   check:v=>v.s==null?{empty:1,msg:'Wählen Sie Plus oder Minus.'}:v.s===R.V?{ok:1}:{msg:`Das Vorzeichenbit ist ${R.V}.`,tag:'v'},
+   sol:()=>({s:R.V}), hint:'Schauen Sie auf V: 0 bedeutet Plus, 1 bedeutet Minus.'},
+  {id:'e',title:'Exponent e dezimal',short:'Exponent e dezimal',sub:'8 Bit in Dezimal umrechnen',
+   body:fh=>`<div class="row"><span class="mono">e =</span>${fh.inp('ed',{w:4,max:4,mode:'numeric',label:'e dezimal'})}</div><div class="places"><span>128</span><span>64</span><span>32</span><span>16</span><span>8</span><span>4</span><span>2</span><span>1</span></div>`,
+   check:v=>{ const e=int(v.ed); if(isNaN(e)) return {empty:1,msg:'Tragen Sie e ein.'}; return e===R.e?{ok:1}:{msg:'Addieren Sie die Stellenwerte, unter denen im Exponentenfeld eine 1 steht.',tag:'d',bad:['ed']}; },
+   sol:()=>({ed:String(R.e)}), hint:'Schreiben Sie die 8 Bit von E unter die Stellenwerte 128 64 32 16 8 4 2 1 und addieren Sie, wo eine 1 steht.'},
+  {id:'k',title:'k = e − 127',short:'k = e − 127',sub:'Den Bias wieder abziehen',
+   body:fh=>`<div class="row"><span class="mono">k =</span>${fh.inp('k',{w:4,max:5,label:'k'})}</div>`,
+   check:v=>{ const k=int(v.k); if(isNaN(k)) return {empty:1,msg:'Tragen Sie k ein.'};
+     if(k===R.k) return {ok:1};
+     if(k===127-R.e) return {msg:'Rechnen Sie e − 127, nicht 127 − e.',tag:'u',bad:['k']};
+     return {msg:'Ziehen Sie 127 von e ab.',tag:'u',bad:['k']}; },
+   sol:()=>({k:String(R.k)}), hint:'Beim Speichern wurde 127 dazugezählt. Jetzt ziehen Sie 127 wieder ab.'},
+  {id:'n',title:'Zahl aufschreiben: 1,Mantisse × 2^k',short:'1,Mantisse × 2^k',sub:'Die 1 vor dem Komma ergänzen. Nullen am Ende weglassen.',
+   body:fh=>`<div class="row"><span class="mono">1,</span>${fh.inp('md',{w:14,max:30,mode:'numeric',label:'Mantisse ohne Nullen am Ende'})}<span class="mono">× 2</span><span class="sup mono">k</span></div>`,
+   check:v=>{ const a=bits(v.md).replace(/^1?,/,'');
+     if(!a&&R.mant) return {empty:1,msg:'Tragen Sie die Ziffern nach dem Komma ein.'};
+     if(a&&!isB(a)) return {msg:'Verwenden Sie nur 0 und 1.',bad:['md']};
+     if(a.replace(/0+$/,'')===R.mant) return {ok:1,note:a!==R.mant?'Richtig. Die Nullen am Ende dürfen Sie weglassen.':'Richtig.'};
+     return {msg:'Übernehmen Sie die Bits aus dem Mantissenfeld M.',bad:['md']}; },
+   sol:()=>({md:R.mant||'0'}), hint:'Das Hidden Bit wird beim Lesen wieder ergänzt: vor das Komma kommt eine 1, dahinter die Bits aus M.'},
+  {id:'x',title:'Komma um k Stellen verschieben',short:'Komma verschieben',sub:'k positiv → nach rechts, k negativ → nach links',
+   body:fh=>`<div class="row">${fh.inp('fx',{w:16,max:40,mode:'decimal',ph:'z. B. 101,01',label:'Festkommazahl binär'})}<span class="mono">₂</span></div>`,
+   check:v=>{ const val=binFixed(v.fx); if(String(v.fx||'').trim()==='') return {empty:1,msg:'Tragen Sie die Festkommazahl ein.'};
+     if(isNaN(val)) return {msg:'Schreiben Sie eine Binärzahl mit Komma, zum Beispiel 101,01.',bad:['fx']};
+     const a=Math.abs(R.value); if(near(Math.abs(val),a,1e-12)) return {ok:1};
+     const m=binFixed('1,'+(R.mant||'0')); if(R.k!==0&&near(Math.abs(val),m*Math.pow(2,-R.k),1e-12)) return {msg:'Falsche Richtung: Bei positivem k wandert das Komma nach rechts.',tag:'s',bad:['fx']};
+     return {msg:'Verschieben Sie das Komma von 1,… um genau k Stellen.',bad:['fx']}; },
+   sol:()=>({fx:R.fixed}), hint:`Starten Sie bei 1,${R.mant||'0'} und schieben Sie das Komma um ${Math.abs(R.k)} Stellen nach ${R.k>=0?'rechts':'links'}. Fehlende Stellen füllen Sie mit 0.`},
+  {id:'d',title:'In Dezimal umrechnen',short:'Dezimalwert',sub:'Stellenwerte … 4 2 1 , ½ ¼ ⅛',
+   body:fh=>`<div class="places"><span>16</span><span>8</span><span>4</span><span>2</span><span>1</span><span>,</span><span>0,5</span><span>0,25</span><span>0,125</span><span>0,0625</span></div><div class="row"><span>Wert:</span>${fh.inp('dv',{w:10,max:20,mode:'decimal',label:'Dezimalwert'})}<span>${esc(unit)}</span></div>${o.plaus?`<label class="small" for="${'s5-d-pl'}">${o.plaus}</label>${fh.area('pl',{label:o.plaus,ph:'Begründung (wird nicht bewertet)'})}`:''}`,
+   check:v=>{ const x=num(v.dv); if(isNaN(x)) return {empty:1,msg:'Tragen Sie den Dezimalwert ein, zum Beispiel 3,5.'};
+     if(near(x,R.value,1e-9)) return {ok:1,note:o.plausNote?`Richtig: ${fmt(R.value)}${unit}. ${o.plausNote}`:`Richtig: ${fmt(R.value)}${unit}.`};
+     if(near(x,-R.value,1e-9)) return {msg:'Der Betrag stimmt. Denken Sie an das Vorzeichen.',tag:'v',bad:['dv']};
+     return {msg:'Addieren Sie die Stellenwerte, unter denen eine 1 steht.',tag:'d',bad:['dv']}; },
+   sol:()=>({dv:fmt(R.value)}), hint:'Schreiben Sie die Festkommazahl unter die Stellenwerte und addieren Sie, wo eine 1 steht.'}
+  ];
+}
+
+/* ---------- Schritte: Blatt 6 ---------- */
+const P6rows=(()=>{const r=[];let t=1;for(let j=0;j<8;j++){const y=2*t;r.push({x:t/10,y:y/10,b:y>=10?1:0});t=y%10;}return r;})();
+const P6R=reverse('3DCCCCCD');
+const P6_MODEL='0,1 und 0,2 haben im Binärsystem unendlich viele Nachkommastellen. Gespeichert werden nur gerundete Näherungen, und die Summe dieser Näherungen ist nicht genau die gespeicherte Näherung von 0,3.';
+function p6Steps(){
+  return [
+  {id:'p1',title:'a) 0,1 in Binär: 8 Zeilen rechnen',short:'a) 0,1 × 2 (8 Zeilen)',sub:'Immer mal 2 nehmen. Fällt Ihnen etwas auf?',
+   body:fh=>mulTable(fh,P6rows,false),
+   check:v=>checkMul(v,P6rows)||{ok:1,note:'Richtig. Ab Zeile 2 wiederholen sich die Werte 0,2 → 0,4 → 0,8 → 0,6 → 0,2 …'},
+   sol:()=>mulSol(P6rows), hint:'Rechnen Sie nach einer 1 vor dem Komma nur mit dem Rest weiter: 1,6 → weiter mit 0,6.'},
+  {id:'p2',title:'a) Bitfolge und Wiederholung',short:'a) Bitfolge & Wiederholung',sub:'Lesen Sie die Bits von oben nach unten.',
+   body:fh=>`<div class="row"><span class="mono">0,1 = 0,</span>${fh.inp('bs',{w:8,max:8,mode:'numeric',label:'erste 8 Nachkommabits'})}<span class="mono">…₂</span></div><div class="row"><span>Die Bits wiederholen sich ab der</span>${fh.inp('pos',{w:2,max:2,mode:'numeric',label:'Stelle'})}<span>. Stelle.</span></div>`,
+   check:v=>{ const b=bits(v.bs), p=int(v.pos); if(!b||isNaN(p)) return {empty:1,msg:'Füllen Sie beide Felder aus.'};
+     if(b!=='00011001') return {msg:'Übernehmen Sie die 8 Bits aus der Tabelle, von oben nach unten.',bad:['bs']};
+     if(p===2) return {ok:1,note:'Richtig: 0,0 0011 0011 0011 … Das Muster 0011 wiederholt sich ohne Ende.'};
+     return {msg:p===6?'Schauen Sie genauer hin: 0,0|0011|0011 … Das Muster beginnt schon früher.':'Suchen Sie das Muster, das sich wiederholt: 0011.',tag:'p',bad:['pos']}; },
+   sol:()=>({bs:'00011001',pos:'2'}), hint:'Trennen Sie die Bits so: 0,0 | 0011 | 0011 … Ab welcher Stelle beginnt das wiederholte Muster?'},
+  {id:'p3',title:'b) Festkomma 8.8: nur die ersten 8 Bits',short:'b) Festkomma 8.8',sub:'Was bleibt von 0,1 übrig?',
+   body:fh=>`<div class="row"><span class="mono">0,1 ≈ 00000000,</span>${fh.inp('f8',{w:8,max:8,mode:'numeric',label:'8 Nachkommabits'})}<span class="mono">₂ =</span>${fh.inp('dec',{w:11,max:16,mode:'decimal',label:'Wert dezimal'})}</div><div class="row"><span>Abweichung von 0,1:</span>${fh.inp('dev',{w:11,max:16,mode:'decimal',label:'Abweichung'})}</div>`,
+   check:v=>{ const f8=bits(v.f8), d=num(v.dec), a=num(v.dev); if(!f8||isNaN(d)||isNaN(a)) return {empty:1,msg:'Füllen Sie alle drei Felder aus.'};
+     if(f8!=='00011001') return {msg:'Nehmen Sie die ersten 8 Bits aus a).',bad:['f8']};
+     if(!near(d,0.09765625,1e-8)) return {msg:'Addieren Sie die Stellenwerte: 0,0625 + 0,03125 + 0,00390625.',tag:'d',bad:['dec']};
+     if(!near(Math.abs(a),0.00234375,1e-8)) return {msg:'Abweichung = 0,1 − Ihr Dezimalwert.',bad:['dev']};
+     return {ok:1}; },
+   sol:()=>({f8:'00011001',dec:'0,09765625',dev:'0,00234375'}), hint:'Die Stellen nach dem Komma sind 1/2, 1/4, 1/8, 1/16, 1/32, 1/64, 1/128, 1/256.'},
+  {id:'p4',title:'c) 3DCCCCCD in 32 Bit',short:'c) Hex → 32 Bit',sub:'So speichert der Computer 0,1 als Gleitkommazahl.',
+   body:fh=>groupInputs(fh,i=>`<div class="hexd">${P6R.hex[i]}</div>`)+hexHelp(),
+   check:v=>{ const gs=readGroups(v); if(gs.some(x=>!x)) return {empty:1,msg:'Füllen Sie alle acht Vierergruppen aus.'};
+     const wrong=gs.map((x,i)=>x!==P6R.groups[i]?i:-1).filter(i=>i>=0);
+     return wrong.length?{msg:`Gruppe ${wrong.map(i=>i+1).join(', ')} stimmt noch nicht.`,tag:'g',bad:wrong.map(i=>'g'+i)}:{ok:1}; },
+   sol:()=>Object.fromEntries(P6R.groups.map((g,i)=>['g'+i,g])), hint:'C = 12 = 1100, D = 13 = 1101, 3 = 0011.'},
+  {id:'p5',title:'c) V, E und M ablesen',short:'c) V, E, M ablesen',sub:'Teilen Sie die 32 Bit auf und berechnen Sie e und k.',
+   body:fh=>`<div class="row"><span class="field-lbl fv">V</span>${fh.inp('V',{w:1,max:1,mode:'numeric',label:'V'})}<span class="field-lbl fe">E</span>${fh.inp('E',{w:8,max:8,mode:'numeric',label:'E'})}<span class="mono">e =</span>${fh.inp('e',{w:3,max:4,mode:'numeric',label:'e'})}<span class="mono">k =</span>${fh.inp('k',{w:3,max:4,label:'k'})}</div><div class="row"><span class="field-lbl fm">M</span>${fh.inp('M',{w:27,max:32,mode:'numeric',label:'M'})}<span class="counter" data-count="M" data-n="23">${bits(fh.val('M')).length}/23 Bit</span></div>`,
+   check:v=>{ const V=bits(v.V),E=bits(v.E),M=bits(v.M),e=int(v.e),k=int(v.k);
+     if(!V||!E||!M||isNaN(e)||isNaN(k)) return {empty:1,msg:'Füllen Sie alle Felder aus.'};
+     const bad=[V!==P6R.V?'V':'',E!==P6R.E?'E':'',M!==P6R.M?'M':'',e!==P6R.e?'e':'',k!==P6R.k?'k':''].filter(Boolean);
+     if(!bad.length) return {ok:1,note:'Richtig: 0,1 ≈ 1,1001 1001 … × 2⁻⁴.'};
+     if(bad.length===1&&bad[0]==='k'&&k===127-P6R.e) return {msg:'k = e − 127, nicht 127 − e.',tag:'u',bad};
+     return {msg:'Noch nicht alles richtig. Das 1. Bit ist V, dann 8 Bit E, dann 23 Bit M. k = e − 127.',bad}; },
+   sol:()=>({V:P6R.V,E:P6R.E,M:P6R.M,e:String(P6R.e),k:String(P6R.k)}), hint:'e ist der Dezimalwert von E. Danach k = e − 127.'},
+  {id:'p6',title:'c) Warum ist die letzte Hex-Ziffer D und nicht C?',short:'c) Warum D statt C?',sub:'Tipp: Was passiert mit dem 24. Mantissen-Bit?',
+   body:fh=>`<div class="step-body">${fh.radio('mc','b','Am Ende der Mantisse steht immer eine 1, damit die Zahl nicht 0 ist.',1)}${fh.radio('mc','a','Das 24. Bit wäre eine 1. Die Mantisse hat aber nur 23 Plätze, deshalb wird aufgerundet: …1100 wird zu …1101.',1)}${fh.radio('mc','c','Die letzte Ziffer gehört zum Exponenten und gleicht den Bias aus.',1)}${fh.radio('mc','d','Das ist ein Tippfehler. Richtig wäre C.',1)}</div>`,
+   check:v=>!v.mc?{empty:1,msg:'Wählen Sie eine Antwort.'}:v.mc==='a'?{ok:1,note:'Richtig. Durch das Aufrunden wird 0,1 minimal zu groß gespeichert: 0,100000001490116…'}:{msg:'Noch nicht. Schreiben Sie das Muster 1001 1001 … weiter: Welches Bit käme an Stelle 24?',tag:'w'},
+   sol:()=>({mc:'a'}), hint:'Die Bitfolge von 0,1 geht unendlich weiter. Beim Abschneiden nach 23 Bit wird gerundet.'},
+  {id:'p7',title:'d) In einem Satz erklären',short:'d) Erklärung 0,1 + 0,2',sub:'Warum ergibt 0,1 + 0,2 im Computer nicht genau 0,3?',
+   body:fh=>fh.area('tx',{label:'Ihre Erklärung',ph:'Ihre Erklärung in einem Satz'}),
+   check:v=>String(v.tx||'').trim().length<15?{empty:1,msg:'Schreiben Sie einen ganzen Satz.'}:{ok:1,note:'Danke. Vergleichen Sie mit der Musterantwort: '+P6_MODEL},
+   sol:()=>({tx:P6_MODEL}), hint:'Denken Sie an a) bis c): Kann der Computer 0,1 genau speichern?'}
+  ];
+}
+
+/* ---------- Blätter ---------- */
+const SHEETS=[
+ {id:'0',muster:1,label:'Muster',short:'−6,75 °C',title:'Leitbeispiel: −6,75 °C Schritt für Schritt',kind:'fwd',x:-6.75,lernbild:1,
+  situation:'Ein Temperatursensor misst −6,75 °C. Der Computer speichert diesen Wert nicht als „−6,75“, sondern als 32 Bit. In einem Diagnoseprogramm sehen Sie den Wert meist als Hexadezimalzahl: C0D80000.',
+  task:'So sieht ein vollständig gelöstes Blatt aus. Vergleichen Sie damit Ihre eigenen Blätter.'},
+ {id:'1',label:'Basis',short:'Küchenwaage',title:'Die Küchenwaage',kind:'fwd',x:5.5,starthilfe:1,note:'Mit Starthilfe: Die erste Zeile jeder Tabelle ist schon ausgefüllt.',
+  situation:'Eine digitale Küchenwaage zeigt 5,5 kg an. Die Waage speichert den Wert als Gleitkommazahl.',
+  task:'Wandeln Sie 5,5 in eine Gleitkommazahl (IEEE 754, 32 Bit) um und geben Sie das Ergebnis hexadezimal an.'},
+ {id:'2',label:'Basis',short:'Kinoticket',title:'Das Kinoticket',kind:'fwd',x:12.25,note:'Gleiches Vorgehen wie im Leitbeispiel, jetzt ohne Starthilfe.',
+  situation:'Ein Kinoticket kostet 12,25 €. Die Kassa speichert den Preis als Gleitkommazahl.',
+  task:'Wandeln Sie 12,25 in eine Gleitkommazahl (IEEE 754, 32 Bit) um und geben Sie das Ergebnis hexadezimal an.'},
+ {id:'3',label:'Standard',short:'Kühlhaus',title:'Das Kühlhaus',kind:'fwd',x:-9.375,note:'Negative Zahl und drei Nachkommastellen.',
+  situation:'Der Sensor in einem Kühlhaus misst −9,375 °C.',
+  task:'Wandeln Sie −9,375 in eine Gleitkommazahl (IEEE 754, 32 Bit) um und geben Sie das Ergebnis hexadezimal an.',
+  tip:'Tipp: Vorzeichen zuerst merken, dann nur mit 9,375 weiterrechnen.'},
+ {id:'4',label:'Standard',short:'Akku',title:'Der Akku',kind:'fwd',x:0.6875,note:'Zahl kleiner als 1: Der Exponent k wird negativ.',
+  situation:'Ein Akku ist zu 0,6875 geladen (das sind 68,75 %). Das Handy speichert diesen Wert als Gleitkommazahl.',
+  task:'Wandeln Sie 0,6875 in eine Gleitkommazahl (IEEE 754, 32 Bit) um und geben Sie das Ergebnis hexadezimal an.',
+  tip:'Achtung: Hier wandert das Komma beim Normalisieren nach rechts. Dann ist k negativ.'},
+ {id:'5',label:'Transfer',short:'Rückweg',title:'Der Rückweg',kind:'rev',hex:'41A40000',unit:'°C',note:'Jetzt in die andere Richtung: von Hex zur Dezimalzahl.',
+  situation:'Ein Diagnoseprogramm zeigt für den Raumtemperatursensor im Klassenzimmer den Wert 41A40000 an.',
+  task:'Welche Temperatur hat der Sensor gemessen?',
+  plaus:'Passt das Ergebnis zu einem Klassenzimmer? Begründen Sie kurz:',plausNote:'20,5 °C ist eine typische Raumtemperatur, das Ergebnis ist also plausibel.'},
+ {id:'6',label:'Transfer',short:'Warum 0,1?',title:'Warum 0,1 nicht genau passt',kind:'p6',note:'Vertiefung: Genauigkeit und Rundung.',
+  situation:'Ein Online-Shop rechnet 0,10 € + 0,20 €. Ein Programm zeigt danach 0,30000000000000004.',
+  task:'Wie kann das passieren?'}
+];
+const exCache={};
+function buildEx(d,key){
+  let steps, given={}, result='';
+  if(d.kind==='fwd'){ const S=forward(d.x); steps=fwdSteps(S); result=`${fmt(d.x)} = ${S.hex}₁₆`;
+    if(d.starthilfe){ given.i={q0:String(S.div[0].q),r0:String(S.div[0].r)}; given.f={y0:fmt(S.mul[0].y),b0:String(S.mul[0].b)}; } }
+  else if(d.kind==='rev'){ const R=reverse(d.hex); steps=revSteps(R,{unit:d.unit,plaus:d.plaus,plausNote:d.plausNote}); result=`${d.hex}₁₆ = ${fmt(R.value)}${d.unit?' '+d.unit:''}`; }
+  else { steps=p6Steps(); given.p1={y0:'0,2',b0:'0'}; result='0,1 ≈ 3DCCCCCD₁₆ (gerundet)'; }
+  if(d.muster) steps.forEach(s=>{ given[s.id]=s.sol(); });
+  return {key,def:d,steps,given,muster:!!d.muster,codeId:(d.muster||d.id==='F')?null:d.id,result};
+}
+const getEx=id=>exCache[id]||(exCache[id]=buildEx(SHEETS.find(s=>s.id===id),'s'+id));
+const STEP_TITLES={}; SHEETS.forEach(d=>{ if(!d.muster) STEP_TITLES[d.id]=getEx(d.id).steps.map(s=>s.short||s.title); });
+
+/* ---------- Zustand ---------- */
+let beamer=false, NAME=LS.get('name','');
+const states={};
+function stateFor(key){ const k=(beamer?'b:':'')+key; if(!states[k]) states[k]=beamer?{vals:{},st:{}}:LS.get('ex:'+key,{vals:{},st:{}}); return states[k]; }
+const saveT={};
+function saveState(key){ if(beamer) return; clearTimeout(saveT[key]); saveT[key]=setTimeout(()=>LS.set('ex:'+key,states[key]),250); }
+const status=S=>!S?0:S.shown?3:S.ok?((S.att===1&&!S.hint)?1:2):0;
+
+/* ---------- Abgabe-Code ---------- */
+const cleanName=n=>String(n||'').replace(/[|\r\n\t]/g,' ').replace(/\s+/g,' ').trim().slice(0,40);
+function chk(s){ let h=2166136261; for(const c of s){ h^=c.codePointAt(0); h=Math.imul(h,16777619)>>>0; } return (h%1296).toString(36).toUpperCase().padStart(2,'0'); }
+function makeCode(sheet,name,sts,tags){ const body=`GK|${sheet}|${cleanName(name)}|${sts.join('')}|${uniq(tags)}`; return body+'|'+chk(body); }
+
+/* ---------- Übungs-Ansicht ---------- */
+function pillHtml(S){
+  const c=status(S);
+  if(c===1) return '<span class="pill ok">richtig</span>';
+  if(c===2) return `<span class="pill ok">${S.att>1?'richtig nach Korrektur':'richtig mit Tipp'}</span>`;
+  if(c===3) return '<span class="pill warn">Lösung angesehen</span>';
+  if(S&&S.att>0) return '<span class="pill bad">noch nicht richtig</span>';
+  return '<span class="pill">offen</span>';
+}
+function lernbild(){
+  return `<div class="lernbild" aria-label="Lernbild: ein Wert, vier Schreibweisen"><div><span class="small caps">Dezimal</span><b>−6,75</b></div><span class="arr">→</span><div><span class="small caps">Festkomma</span><b>−110,11₂</b></div><span class="arr">→</span><div><span class="small caps">Gleitkomma (32 Bit)</span><b><span style="color:var(--v)">1</span> <span style="color:var(--e)">10000001</span> <span style="color:var(--m)">1011000…</span></b></div><span class="arr">→</span><div><span class="small caps">Hexadezimal</span><b>C0D80000₁₆</b></div></div>`;
+}
+function exHead(ex){
+  const d=ex.def, where=d.id==='0'?'Leitbeispiel':d.id==='F'?'Freies Üben':'Übungsblatt '+d.id;
+  return `<header class="ex-head"><div class="row"><span class="lvl lvl-${d.label.toLowerCase()}">${d.label.toUpperCase()}</span><span class="small">${where}</span>${ex.muster?'':`<button class="btn ghost sm" data-act="reset">Blatt zurücksetzen</button>`}</div>
+  <h2>${esc(d.title)}</h2>${d.note?`<p class="note">${esc(d.note)}</p>`:''}
+  <div class="situation"><span class="small caps">Situation</span><p>${esc(d.situation)}</p></div>
+  <p class="task">${esc(d.task)}</p>${d.tip?`<p class="tip">${esc(d.tip)}</p>`:''}${d.lernbild?lernbild():''}</header>`;
+}
+function stepHtml(ex,s,i,ctx){
+  const S=ctx.S[s.id]||{}, done=ex.muster||S.ok||S.shown, fh=F(ctx,s.id,S);
+  const pill=ex.muster?'<span class="pill">Muster</span>':pillHtml(S);
+  const canSol=beamer||S.att>0;
+  let fbCls=S.shown?'info':S.ok?'ok':(S.msgCls||'bad');
+  return `<section class="step${done?' done':''}" data-step="${s.id}">
+   <header class="step-head"><span class="num">${i+1}</span><div class="tt"><h3>${s.title}</h3>${s.sub?`<p class="sub">${s.sub}</p>`:''}</div>${pill}</header>
+   <div class="step-body">${s.body(fh,ctx)}</div>
+   ${(!done)?`<div class="acts"><button class="btn" data-act="check">Prüfen</button>${s.hint?`<button class="btn ghost" data-act="hint"${S.hint?' disabled':''}>Tipp</button>`:''}<button class="btn ghost" data-act="sol"${canSol?'':' disabled'} title="${canSol?'Lösung einblenden':'Erst nach einem eigenen Versuch möglich'}">Lösung zeigen</button></div>`:''}
+   ${S.hint&&s.hint&&!ex.muster?`<p class="hint"><b>Tipp:</b> ${s.hint}</p>`:''}
+   ${S.msg&&!ex.muster?`<p class="fb ${fbCls}" role="status">${S.msg}</p>`:''}
+  </section>`;
+}
+function submitHtml(ex,st){
+  const n=ex.steps.length, sts=ex.steps.map(s=>status(st.st[s.id])), done=sts.filter(Boolean).length, first=sts.filter(x=>x===1).length;
+  return `<div class="submit student-only"><h3>Abgabe</h3><p>${done} von ${n} Schritten erledigt, ${first} davon beim ersten Versuch richtig.</p>
+  <div class="row"><label for="name-${ex.key}">Ihr Name</label><input id="name-${ex.key}" class="in text nm-in" style="--w:24" value="${esc(NAME)}" autocomplete="name" maxlength="40"></div>
+  <div class="row"><button class="btn" data-act="code">Abgabe-Code erzeugen</button>${done<n?'<span class="small">Offene Schritte zählen als nicht bearbeitet.</span>':''}</div>
+  <div class="row"${st.code?'':' hidden'}><input id="code-${ex.key}" class="in code" readonly value="${esc(st.code||'')}" aria-label="Abgabe-Code"><button class="btn ghost" data-act="copy">Kopieren</button></div>
+  <p class="small" data-msg>Kopieren Sie den Code dorthin, wo Ihre Lehrkraft ihn einsammelt, zum Beispiel in die Teams-Aufgabe oder ein Formular.</p></div>`;
+}
+function renderEx(box,ex){
+  const st=stateFor(ex.key);
+  const ctx={key:ex.key,given:ex.given,vals:st.vals,S:st.st,muster:ex.muster};
+  const allDone=ex.muster||ex.steps.every(s=>{const S=st.st[s.id];return S&&(S.ok||S.shown)});
+  box.innerHTML=`<article class="sheet">${exHead(ex)}<div class="steps">${ex.steps.map((s,i)=>stepHtml(ex,s,i,ctx)).join('')}</div>${allDone?`<p class="result">Ergebnis: ${ex.result}</p>`:''}${ex.codeId&&!beamer?submitHtml(ex,st):''}</article>`;
+  box._ex=ex;
+}
+function collect(sec){ const o={}; $$('[data-f]',sec).forEach(el=>{ if(el.type==='radio'){ if(el.checked) o[el.dataset.f]=el.value; } else o[el.dataset.f]=el.value; }); return o; }
+const resetArm={};
+function wireBox(box,after){
+  box.addEventListener('input',e=>{
+    const el=e.target, ex=box._ex; if(!ex) return;
+    if(el.classList.contains('nm-in')){ NAME=el.value; LS.set('name',NAME); return; }
+    const sec=el.closest('[data-step]'); if(!sec||!el.dataset.f) return;
+    if(el.dataset.upper){ el.value=el.value.toUpperCase(); }
+    const st=stateFor(ex.key), sid=sec.dataset.step; (st.vals[sid]||(st.vals[sid]={}))[el.dataset.f]=el.value;
+    el.classList.remove('bad');
+    $$(`[data-count="${el.dataset.f}"]`,sec).forEach(c=>c.textContent=`${bits(el.value).length}/${c.dataset.n} Bit`);
+    if(el.dataset.adv&&el.value.length>=el.maxLength){ const all=$$('[data-adv]',sec).filter(x=>!x.readOnly), i=all.indexOf(el); if(all[i+1]) all[i+1].focus(); }
+    saveState(ex.key);
+  });
+  box.addEventListener('click',async e=>{
+    const b=e.target.closest('[data-act]'); if(!b||b.disabled) return;
+    const ex=box._ex, st=stateFor(ex.key), act=b.dataset.act, sec=b.closest('[data-step]');
+    if(act==='reset'){
+      if(!resetArm[ex.key]){ resetArm[ex.key]=1; b.textContent='Wirklich zurücksetzen?'; setTimeout(()=>{ resetArm[ex.key]=0; if(b.isConnected) b.textContent='Blatt zurücksetzen'; },4000); return; }
+      resetArm[ex.key]=0; st.vals={}; st.st={}; delete st.code; if(!beamer) LS.set('ex:'+ex.key,st);
+      renderEx(box,ex); after&&after(); return;
+    }
+    if(act==='code'){
+      const msg=$('[data-msg]',box);
+      if(!cleanName(NAME)){ msg.textContent='Bitte tragen Sie zuerst Ihren Namen ein.'; msg.style.color='var(--bad)'; $('.nm-in',box).focus(); return; }
+      const sts=ex.steps.map(s=>status(st.st[s.id])), tags=ex.steps.map(s=>(st.st[s.id]||{}).tags||'').join('');
+      st.code=makeCode(ex.codeId,NAME,sts,tags); LS.set('ex:'+ex.key,st); renderEx(box,ex);
+      const ci=$('#code-'+ex.key,box); ci&&ci.focus(); ci&&ci.select(); return;
+    }
+    if(act==='copy'){
+      const ci=$('#code-'+ex.key,box), msg=$('[data-msg]',box);
+      try{ await navigator.clipboard.writeText(ci.value); msg.textContent='Code kopiert. Fügen Sie ihn jetzt bei Ihrer Lehrkraft ein.'; msg.style.color='var(--ok)'; }
+      catch(err){ ci.focus(); ci.select(); msg.textContent='Kopieren ging nicht automatisch. Der Code ist markiert: Kopieren Sie ihn mit Strg+C (am Handy: lange tippen).'; }
+      return;
+    }
+    if(!sec) return;
+    const sid=sec.dataset.step, step=ex.steps.find(s=>s.id===sid), S=st.st[sid]||(st.st[sid]={});
+    if(act==='check'){
+      const v=Object.assign({},ex.given[sid]||{},collect(sec)); st.vals[sid]=Object.assign(st.vals[sid]||{},collect(sec));
+      const r=step.check(v);
+      if(r.empty){ S.msg=r.msg; S.msgCls='info'; }
+      else { S.att=(S.att||0)+1; S.msgCls='';
+        if(r.ok){ S.ok=true; S.msg=r.note||'Richtig.'; S.bad=[]; }
+        else { S.msg=r.msg; S.bad=(r.bad||[]).filter(Boolean); if(r.tag) S.tags=uniq((S.tags||'')+r.tag); } }
+    } else if(act==='hint'){ S.hint=true; }
+    else if(act==='sol'){ st.vals[sid]=step.sol(); S.shown=true; S.bad=[]; S.msg='Lösung eingeblendet. Vergleichen Sie sie mit Ihrem eigenen Versuch.'; }
+    if(!beamer) LS.set('ex:'+ex.key,st);
+    renderEx(box,ex); after&&after();
+    if(act==='check'&&S.ok){ const secs=$$('[data-step]',box), i=secs.findIndex(x=>x.dataset.step===sid), nx=secs[i+1]; const f=nx&&$('input:not([readonly]):not([disabled]),textarea:not([readonly])',nx); f&&f.focus({preventScroll:true}); }
+    else { const s2=$(`[data-step="${sid}"] .fb, [data-step="${sid}"] .hint`,box); s2&&s2.scrollIntoView({block:'nearest'}); }
+  });
+}
+
+/* ---------- Übungsblätter ---------- */
+let curSheet=LS.get('sheet','1');
+function renderNav(){
+  $('#sheetNav').innerHTML=SHEETS.map(d=>{ const ex=getEx(d.id), st=stateFor(ex.key), n=ex.steps.length;
+    const done=ex.steps.filter(s=>{const S=st.st[s.id];return S&&(S.ok||S.shown)}).length;
+    return `<button class="chip" data-sheet="${d.id}" aria-current="${d.id===curSheet}"><small>${d.id==='0'?'Leitbeispiel':'Blatt '+d.id} · ${d.label}</small><span>${esc(d.short)}</span>${d.muster?'<span class="prog">gelöst</span>':`<span class="prog${done===n?' full':''}">${done}/${n} Schritte</span>`}</button>`; }).join('');
+}
+function showSheet(id){ curSheet=id; LS.set('sheet',id); renderNav(); renderEx($('#sheetView'),getEx(id)); }
+$('#sheetNav').addEventListener('click',e=>{ const c=e.target.closest('[data-sheet]'); if(c){ showSheet(c.dataset.sheet); $('#sheetView').scrollIntoView({block:'start'}); } });
+wireBox($('#sheetView'),renderNav);
+
+/* ---------- Freies Üben ---------- */
+const CTX=[{t:'Ein Thermometer zeigt {x} °C.',neg:1},{t:'Ein Kontostand beträgt {x} €.',neg:1},{t:'Ein Höhenmesser zeigt {x} m relativ zum Startpunkt.',neg:1},
+  {t:'Ein Paket wiegt {x} kg.'},{t:'Ein Liter Milch kostet {x} €.'},{t:'Eine Laufstrecke ist {x} km lang.'},{t:'Ein Messbecher enthält {x} l.'}];
+function genNumber(level){
+  const R=Math.random; let ip,den,sign=1;
+  if(level==='basis'){ ip=1+Math.floor(R()*31); den=4; }
+  else if(level==='standard'){ ip=R()<.2?0:1+Math.floor(R()*99); den=8; sign=R()<.5?-1:1; }
+  else { ip=R()<.3?0:1+Math.floor(R()*200); den=16; sign=R()<.5?-1:1; }
+  return sign*(ip+(1+Math.floor(R()*(den-1)))/den);
+}
+let free=LS.get('free',null);
+function newFree(){
+  const dir=$('input[name="fdir"]:checked').value, level=$('input[name="flvl"]:checked').value, x=genNumber(level);
+  const ctxs=CTX.filter(c=>x>=0||c.neg); free={dir,level,x,ctx:Math.floor(Math.random()*ctxs.length),neg:x<0};
+  LS.set('free',free); states[(beamer?'b:':'')+'free']={vals:{},st:{}}; if(!beamer) LS.set('ex:free',{vals:{},st:{}});
+  renderFree();
+}
+function renderFree(){
+  if(!free) { newFree(); return; }
+  const ctxs=CTX.filter(c=>!free.neg||c.neg), c=ctxs[free.ctx%ctxs.length]||CTX[0], S=forward(free.x);
+  const lv=free.level, label=lv==='basis'?'Basis':lv==='standard'?'Standard':'Knifflig';
+  let d,steps,result;
+  if(free.dir==='fwd'){ d={id:'F',label,title:`${fmt(free.x)} umwandeln`,situation:c.t.replace('{x}',fmt(free.x)),task:`Wandeln Sie ${fmt(free.x)} in eine Gleitkommazahl (IEEE 754, 32 Bit) um und geben Sie das Ergebnis hexadezimal an.`};
+    steps=fwdSteps(S); result=`${fmt(free.x)} = ${S.hex}₁₆`; }
+  else { const R=reverse(S.hex); d={id:'F',label,title:`${S.hex} lesen`,situation:`Ein Diagnoseprogramm zeigt den Wert ${S.hex} an.`,task:'Welche Dezimalzahl ist hier gespeichert?'};
+    steps=revSteps(R,{}); result=`${S.hex}₁₆ = ${fmt(R.value)}`; }
+  const ex={key:'free',def:d,steps,given:{},muster:false,codeId:null,result};
+  $('#fdir-'+free.dir).checked=true; $('#flvl-'+(lv==='basis'?'b':lv==='standard'?'s':'k')).checked=true;
+  renderEx($('#freeView'),ex);
+}
+$('#freeNew').addEventListener('click',newFree);
+wireBox($('#freeView'));
+
+/* ---------- Explorer ---------- */
+let xu=0xC0D80000>>>0, xIn=-6.75;
+const short32=v=>{ if(!isFinite(v)||v===0) return null; for(let p=1;p<=9;p++){ const s=v.toPrecision(p); if(Math.fround(parseFloat(s))===v) return s; } return String(v); };
+const deNum=s=>{ if(s==null) return ''; let t=String(s); if(/e/i.test(t)){ const [m,ex]=t.split(/e/i); return m.replace('.',',').replace('-','−')+' × 10<sup>'+minusStr(+ex)+'</sup>'; } t=String(parseFloat(t)); if(/e/.test(t)) return deNum(t); return t.replace('.',',').replace('-','−'); };
+const exact=v=>{ if(!isFinite(v)||v===0) return null; const s=Math.abs(v).toPrecision(60); if(/e/.test(s)) return null; return (v<0?'−':'')+s.replace(/0+$/,'').replace(/\.$/,'').replace('.',','); };
+function renderX(){
+  const u=xu>>>0, b=u.toString(2).padStart(32,'0'), V=b[0], E=b.slice(1,9), M=b.slice(9), e=parseInt(E,2);
+  dv.setUint32(0,u); const val=dv.getFloat32(0), hex=u.toString(16).toUpperCase().padStart(8,'0');
+  let h=''; for(let n=0;n<8;n++){ let bb=''; for(let i=n*4;i<n*4+4;i++){ const f=i===0?'v':i<9?'e':'m', nm=i===0?'Vorzeichen':i<9?'Exponent':'Mantisse';
+      bb+=`<button class="bit ${f}${b[i]==='0'?' z':''}" data-i="${i}" aria-label="Bit ${i+1}, ${nm}, Wert ${b[i]}. Klicken zum Umschalten">${b[i]}</button>`; }
+    h+=`<div class="nib"><div class="bb">${bb}</div><span class="hexd">${hex[n]}</span></div>`; }
+  $('#xBits').innerHTML=h;
+  if(document.activeElement!==$('#xHex')) $('#xHex').value=hex;
+  if(document.activeElement!==$('#xDec')){ const s=short32(val); $('#xDec').value=xIn!=null&&Math.fround(xIn)===val?String(xIn).replace('.',','):(s?s.replace('.',','):(val===0?(Object.is(val,-0)?'-0':'0'):String(val))); }
+  const mS=M.replace(/0+$/,''), kind=e===0?(/1/.test(M)?'sub':'zero'):e===255?(/1/.test(M)?'nan':'inf'):'norm', k=e-127;
+  let eTxt, mTxt, wTxt;
+  if(kind==='norm'){ eTxt=`k = ${e} − 127 = ${minusStr(k)}`; mTxt=`Signifikand: <b class="mono">1,${mS||'0'}₂</b> (Hidden Bit ergänzt)`;
+    wTxt=`${V==='1'?'−':''}1,${mS||'0'}₂ × 2<sup>${minusStr(k)}</sup> = <b>${deNum(short32(val))}</b>`; }
+  else if(kind==='sub'){ eTxt='E besteht nur aus Nullen: subnormale Zahl, k = −126'; mTxt=`Signifikand: <b class="mono">0,${mS}₂</b> (ohne Hidden Bit)`;
+    wTxt=`${V==='1'?'−':''}0,${mS}₂ × 2<sup>−126</sup> = <b>${deNum(short32(val))}</b>`; }
+  else if(kind==='zero'){ eTxt='E und M bestehen nur aus Nullen'; mTxt='Kein Signifikand: Das Muster steht für die Null.'; wTxt=`<b>${V==='1'?'−0':'+0'}</b>`; }
+  else if(kind==='inf'){ eTxt='E besteht nur aus Einsen, M = 0'; mTxt='Sonderwert, kein Signifikand.'; wTxt=`<b>${V==='1'?'−':'+'}unendlich</b>`; }
+  else { eTxt='E besteht nur aus Einsen, M ≠ 0'; mTxt='Sonderwert, kein Signifikand.'; wTxt='<b>NaN</b> (Not a Number)'; }
+  let rTxt='';
+  if(xIn!=null&&isFinite(xIn)&&isFinite(val)){
+    if(val===xIn) rTxt=`<p class="fb ok">${deNum(String(xIn))} ist exakt darstellbar.</p>`;
+    else { const ex=exact(val); rTxt=`<p class="fb bad">${deNum(String(xIn))} ist nicht exakt darstellbar. Gespeichert wird ${ex?`<span class="mono">${ex}</span>`:deNum(String(val))}. Abweichung: ${deNum((val-xIn).toExponential(2))}.</p>`; }
+  }
+  let fx='';
+  if(isFinite(val)&&Math.abs(val)<256){ const a=Math.abs(val), ip=Math.floor(a), fr=Math.floor((a-ip)*256), exactFx=near((a-ip)*256,fr,1e-12);
+    fx=`<div class="xcard"><span class="small caps">Festkomma 8.8 (Betrag)</span><span class="big">${ip.toString(2).padStart(8,'0')},${fr.toString(2).padStart(8,'0')}₂</span><span class="small">${exactFx?'Passt exakt in 8 + 8 Bit.':'Nach 8 Nachkommabits abgeschnitten, also nur eine Näherung.'}</span></div>`; }
+  $('#xInfo').innerHTML=`
+   <div class="xcard v"><span class="small caps">V · Vorzeichen</span><span class="big">${V}</span><span>${V==='0'?'Plus':'Minus'}</span></div>
+   <div class="xcard e"><span class="small caps">E · Exponent</span><span class="big">${E}₂ = ${e}</span><span>${eTxt}</span></div>
+   <div class="xcard m"><span class="small caps">M · Mantisse</span><span class="big" style="font-size:.95rem">${M}</span><span>${mTxt}</span></div>
+   <div class="xcard"><span class="small caps">Wert</span><span>${wTxt}</span><span class="small mono">Hex: ${hex}₁₆</span></div>${fx}
+   <div style="grid-column:1 / -1">${rTxt}</div>`;
+}
+function setDec(){ const x=num($('#xDec').value), err=$('#xErr');
+  if(isNaN(x)){ err.hidden=false; err.textContent='Bitte eine Zahl eingeben, zum Beispiel −6,75 oder 0,1.'; return; }
+  err.hidden=true; xIn=x; dv.setFloat32(0,x); xu=dv.getUint32(0); renderX(); }
+function setHex(){ const h=$('#xHex').value.trim().toUpperCase(), err=$('#xErr');
+  if(!/^[0-9A-F]{8}$/.test(h)){ err.hidden=false; err.textContent='Ein Hex-Muster hat genau 8 Zeichen aus 0–9 und A–F.'; return; }
+  err.hidden=true; xIn=null; xu=parseInt(h,16)>>>0; renderX(); }
+$('#xDec').addEventListener('input',setDec);
+$('#xHex').addEventListener('input',setHex);
+$('#xBits').addEventListener('click',e=>{ const b=e.target.closest('[data-i]'); if(!b) return; const i=+b.dataset.i; xu=(xu^(1<<(31-i)))>>>0; xIn=null; renderX(); const nb=$(`[data-i="${i}"]`,$('#xBits')); nb&&nb.focus(); });
+const QUICK=[['−6,75','dec'],['0,1','dec'],['12,375','dec'],['0,6875','dec'],['1','dec'],['+∞','7F800000'],['NaN','7FC00000'],['kleinste Zahl','00000001']];
+$('#xQuick').innerHTML=QUICK.map(([l,t],i)=>`<button class="btn ghost sm" data-q="${i}">${l}</button>`).join('');
+$('#xQuick').addEventListener('click',e=>{ const b=e.target.closest('[data-q]'); if(!b) return; const [l,t]=QUICK[+b.dataset.q];
+  if(t==='dec'){ $('#xDec').value=l; setDec(); } else { $('#xHex').value=t; setHex(); } });
+
+/* ---------- Lehrkraft ---------- */
+const NSTEPS={}; Object.keys(STEP_TITLES).forEach(k=>NSTEPS[k]=STEP_TITLES[k].length);
+const TAGS={r:'Reste von oben nach unten gelesen (Ganzzahlteil)',n:'Nachkommabits in falscher Reihenfolge',t:'Rechenfehler in der Tabelle (: 2 oder × 2)',f:'Festkomma 8.8 auf der falschen Seite aufgefüllt',
+  k:'Vorzeichen von k falsch (Richtung des Kommas)',b:'Bias 127 vergessen oder falsch verrechnet',x:'Exponent nicht als 8 Bit geschrieben',h:'Hidden Bit (führende 1) mitgespeichert',
+  m:'Mantisse links statt rechts aufgefüllt',l:'Falsche Bitanzahl (8, 23 oder 32 Bit)',v:'Vorzeichen bzw. Vorzeichenbit falsch',g:'Vierergruppe und Hex-Ziffer falsch zugeordnet',
+  u:'k = e − 127 falsch gerechnet',s:'Komma in die falsche Richtung verschoben',d:'Binär → Dezimal falsch umgerechnet',p:'Wiederholung bei 0,1 nicht erkannt',w:'Rundung des 24. Bits nicht erkannt'};
+const ST_TXT=['offen','sofort richtig','richtig nach Korrektur oder Tipp','Lösung angesehen'];
+function parseCodes(text){
+  const re=/GK\|([1-6])\|([^|\r\n]{1,40})\|([0-3]{3,12})\|([a-z]{0,20})\|([0-9A-Z]{2})/g, res=new Map(); let m, valid=0;
+  const looks=(text.match(/GK\|/g)||[]).length;
+  while((m=re.exec(text))){ const body=`GK|${m[1]}|${m[2]}|${m[3]}|${m[4]}`; if(chk(body)!==m[5]||m[3].length!==NSTEPS[m[1]]) continue;
+    valid++; const name=m[2].trim(); res.set(name.toLowerCase()+'|'+m[1],{sheet:m[1],name,st:m[3].split('').map(Number),tags:m[4]}); }
+  return {list:[...res.values()],valid,bad:Math.max(0,looks-valid)};
+}
+let tSheet=null;
+function renderTeacher(){
+  const text=$('#tCodes').value; LS.set('tcodes',text);
+  const {list,valid,bad}=parseCodes(text), out=$('#tOut');
+  $('#tStat').textContent=text.trim()?`${valid} gültige Codes${bad?`, ${bad} ungültig (Tippfehler oder unvollständig)`:''}`:'';
+  if(!list.length){ out.innerHTML=`<div class="empty">Noch keine gültigen Codes. Sobald Sie Codes einfügen, sehen Sie hier, wer welches Blatt abgegeben hat und bei welchem Schritt die Klasse hängen bleibt. Mit „Beispieldaten laden“ sehen Sie, wie das aussieht.</div>`; return; }
+  const names=[...new Set(list.map(r=>r.name))].sort((a,b)=>a.localeCompare(b,'de'));
+  const by={}; list.forEach(r=>{ (by[r.name]||(by[r.name]={}))[r.sheet]=r; });
+  const sheetsWith=['1','2','3','4','5','6'].filter(s=>list.some(r=>r.sheet===s));
+  if(!tSheet||!sheetsWith.includes(tSheet)) tSheet=sheetsWith.slice().sort((a,b)=>list.filter(r=>r.sheet===b).length-list.filter(r=>r.sheet===a).length)[0];
+  const cell=(r,sid)=>{ if(!r) return '<td class="tnum">–</td>'; const ok=r.st.filter(x=>x===1||x===2).length;
+    return `<td><span class="sqs">${r.st.map((x,i)=>`<i class="sq s${x}" title="${esc(STEP_TITLES[sid][i])}: ${ST_TXT[x]}"></i>`).join('')}</span><span class="tnum">${ok}/${r.st.length}</span></td>`; };
+  const legendHtml=`<div class="legend"><span><i class="s1"></i>sofort richtig</span><span><i class="s2"></i>nach Korrektur oder Tipp</span><span><i class="s3"></i>Lösung angesehen</span><span><i class="s0"></i>offen</span></div>`;
+  const matrix=`<div class="card"><h3>Übersicht nach Blatt</h3>${legendHtml}<div class="tbl-wrap"><table class="mx"><thead><tr><th>Name</th>${['1','2','3','4','5','6'].map(s=>`<th>Blatt ${s}</th>`).join('')}</tr></thead><tbody>${names.map(n=>`<tr><td>${esc(n)}</td>${['1','2','3','4','5','6'].map(s=>cell(by[n][s],s)).join('')}</tr>`).join('')}</tbody></table></div><p class="small">Ein Kästchen pro Schritt. Zeigen Sie auf ein Kästchen, um den Schritt zu sehen. Die Zahl zählt alle selbst gelösten Schritte.</p></div>`;
+  const rows=list.filter(r=>r.sheet===tSheet), titles=STEP_TITLES[tSheet], N=rows.length;
+  const cnt=titles.map((_,i)=>[0,1,2,3].map(s=>rows.filter(r=>r.st[i]===s).length));
+  const diff=cnt.map(c=>c[2]+c[3]+c[0]); const maxD=Math.max(...diff);
+  const col=['var(--chip)','var(--ok)','var(--ok2)','var(--warn-dot)'];
+  const bars=titles.map((t,i)=>{ const c=cnt[i]; return `<div class="barrow"><span>${i+1}. ${esc(t)}${maxD>0&&diff[i]===maxD?'<span class="flag">größte Hürde</span>':''}</span><div class="bar" role="img" aria-label="${c[1]} sofort richtig, ${c[2]} nach Korrektur oder Tipp, ${c[3]} Lösung angesehen, ${c[0]} offen">${[1,2,3,0].map(s=>c[s]?`<span style="width:${c[s]/N*100}%;background:${col[s]}"></span>`:'').join('')}</div><span class="tnum">${c[1]} · ${c[2]} · ${c[3]} · ${c[0]}</span></div>`; }).join('');
+  const detail=`<div class="card"><h3>Schritte im Detail</h3><div class="row" role="group" aria-label="Blatt wählen">${sheetsWith.map(s=>`<button class="btn ${s===tSheet?'':'ghost'} sm" data-ts="${s}" aria-pressed="${s===tSheet}">Blatt ${s} · ${list.filter(r=>r.sheet===s).length}</button>`).join('')}</div>${legendHtml}<div class="bars">${bars}</div><p class="small">Zahlen rechts: sofort richtig · nach Korrektur oder Tipp · Lösung angesehen · offen (von ${N} Abgaben)</p></div>`;
+  const tagC={}; list.forEach(r=>[...r.tags].forEach(t=>{ const o=tagC[t]||(tagC[t]={n:0,sheets:new Set()}); o.n++; o.sheets.add(r.sheet); }));
+  const tagList=Object.entries(tagC).sort((a,b)=>b[1].n-a[1].n);
+  const tags=`<div class="card"><h3>Häufige Fehlerbilder</h3>${tagList.length?`<div class="tags">${tagList.map(([t,o])=>`<div class="tagrow"><b>${o.n}</b><span>${esc(TAGS[t]||t)} <span class="small">(Blatt ${[...o.sheets].sort().join(', ')})</span></span></div>`).join('')}</div><p class="small">Zählt Abgaben, in denen der Fehler mindestens einmal erkannt wurde.</p>`:'<p class="small">Bisher keine typischen Fehler erkannt.</p>'}</div>`;
+  out.innerHTML=`<div class="kpis"><div class="kpi"><b>${names.length}</b><span class="small">Lernende</span></div><div class="kpi"><b>${list.length}</b><span class="small">Abgaben</span></div><div class="kpi"><b>${bad}</b><span class="small">ungültige Codes</span></div></div>${matrix}${detail}${tags}`;
+}
+$('#tOut').addEventListener('click',e=>{ const b=e.target.closest('[data-ts]'); if(b){ tSheet=b.dataset.ts; renderTeacher(); } });
+let tT; $('#tCodes').addEventListener('input',()=>{ clearTimeout(tT); tT=setTimeout(renderTeacher,200); });
+function demoCodes(){
+  let seed=11; const rnd=()=>{ seed=(seed*16807)%2147483647; return seed/2147483647; };
+  const names=['Anna','Ben','Clara','David','Elif','Felix','Greta','Hamza','Ida','Jonas','Lea','Mehmet'].map(n=>'Beispiel '+n);
+  const hard={'1':[],'2':[1],'3':[1,6],'4':[4,5],'5':[4,6],'6':[1,5]};
+  const tagAt={'fwd':{1:'r',2:'n',3:'f',4:'k',5:'b',6:'h',7:'v',8:'g'},'5':{0:'g',4:'u',6:'s',7:'d'},'6':{1:'p',5:'w'}};
+  const lines=['Beispieldaten (erfunden, nur zur Ansicht):'];
+  names.forEach((n,ni)=>{ ['1','2','3','4','5','6'].forEach((s,si)=>{ if(rnd()<si*0.12+(ni%4)*0.04) return;
+    const len=NSTEPS[s], ta=s==='5'?tagAt['5']:s==='6'?tagAt['6']:tagAt.fwd; let tags='';
+    const st=[...Array(len)].map((_,i)=>{ const r=rnd()+(hard[s].includes(i)?0.35:0); const x=r<.62?1:r<.88?2:r<1.05?3:2; if(x!==1&&ta[i]&&rnd()<.75) tags+=ta[i]; return x; });
+    lines.push(`${n}: ${makeCode(s,n,st,tags)}`); }); });
+  return lines.join('\n');
+}
+$('#tDemo').addEventListener('click',()=>{ $('#tCodes').value=demoCodes(); renderTeacher(); });
+let clearArm=0;
+$('#tClear').addEventListener('click',e=>{ const b=e.currentTarget; if(!clearArm){ clearArm=1; b.textContent='Wirklich leeren?'; setTimeout(()=>{clearArm=0;b.textContent='Leeren';},4000); return; } clearArm=0; b.textContent='Leeren'; $('#tCodes').value=''; renderTeacher(); });
+(function solTable(){
+  const r=[]; ['1','2','3','4'].forEach(id=>{ const d=SHEETS.find(s=>s.id===id), S=forward(d.x); r.push([`Blatt ${id} · ${d.short}`,fmt(d.x),`${S.hex}₁₆ (e = ${S.e}, k = ${minusStr(S.k)}, Mantisse 1,${S.mant}₂)`]); });
+  const R=reverse('41A40000'); r.push(['Blatt 5 · Rückweg','41A40000₁₆',`${fmt(R.value)} °C (k = ${R.k}, ${R.fixed}₂)`]);
+  r.push(['Blatt 6 · 0,1','0,1','0,000110011…₂ · 8.8: 0,00011001₂ = 0,09765625 (Abweichung 0,00234375) · 3DCCCCCD: e = 123, k = −4, letzte Ziffer D durch Aufrunden']);
+  $('#tSol').innerHTML=`<table class="sol-tbl"><thead><tr><th>Blatt</th><th>Aufgabe</th><th>Lösung</th></tr></thead><tbody>${r.map(x=>`<tr><td>${x[0]}</td><td class="mono">${x[1]}</td><td>${x[2]}</td></tr>`).join('')}</tbody></table>`;
+})();
+
+/* ---------- Reiter, Beamer, Start ---------- */
+let curTab='sheets';
+function showTab(t){ curTab=t; $$('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
+  ['sheets','free','explorer','teacher'].forEach(x=>{ $('#tab-'+x).hidden=x!==t; });
+  if(t==='free') renderFree(); if(t==='explorer') renderX(); if(t==='teacher') renderTeacher(); }
+$$('.tab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+$('#beamerBtn').addEventListener('click',e=>{ beamer=!beamer; document.documentElement.classList.toggle('beamer',beamer); e.currentTarget.setAttribute('aria-pressed',String(beamer));
+  renderNav(); renderEx($('#sheetView'),getEx(curSheet)); if(curTab==='free') renderFree(); });
+$('#tCodes').value=LS.get('tcodes','');
+const HASH={muster:['sheets','0'],blatt1:['sheets','1'],blatt2:['sheets','2'],blatt3:['sheets','3'],blatt4:['sheets','4'],blatt5:['sheets','5'],blatt6:['sheets','6'],ueben:['free'],explorer:['explorer'],lehrkraft:['teacher']};
+const hh=HASH[(location.hash||'').slice(1)];
+if(hh&&hh[1]) curSheet=hh[1];
+if(!SHEETS.some(s=>s.id===curSheet)) curSheet='1';
+showSheet(curSheet);
+showTab(hh?hh[0]:'sheets');
+})();
+</script>
+
+</body></html>
